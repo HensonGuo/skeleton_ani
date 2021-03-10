@@ -4,76 +4,22 @@
 #include <assimp/postprocess.h>
 #include <assimp/Importer.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <unordered_map>
 #include <GLFW/glfw3.h>
 #include <cstdlib>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "shader.h"
 
 
 /*
 骨骼动画 demo
+todo 
+将shader抽出来
+在shader里面打印调试信息
 */
-
-
-const char* vertexShaderSource = R"(
-	#version 440 core
-	layout (location = 0) in vec3 position; 
-	layout (location = 1) in vec3 normal;
-	layout (location = 2) in vec2 uv;
-	layout (location = 3) in vec4 boneIds;
-	layout (location = 4) in vec4 boneWeights;
-
-	out vec2 tex_cord;
-	out vec3 v_normal;
-	out vec3 v_pos;
-	out vec4 bw;
-
-	uniform mat4 bone_transforms[50];
-	uniform mat4 view_projection_matrix;
-	uniform mat4 model_matrix;
-
-	void main()
-	{
-		bw = vec4(0);
-		if(int(boneIds.x) == 1)
-		bw.z = boneIds.x;
-		//boneWeights = normalize(boneWeights);
-		mat4 boneTransform  =  mat4(0.0);
-		boneTransform  +=    bone_transforms[int(boneIds.x)] * boneWeights.x;
-		boneTransform  +=    bone_transforms[int(boneIds.y)] * boneWeights.y;
-		boneTransform  +=    bone_transforms[int(boneIds.z)] * boneWeights.z;
-		boneTransform  +=    bone_transforms[int(boneIds.w)] * boneWeights.w;
-		vec4 pos =boneTransform * vec4(position, 1.0);
-		gl_Position = view_projection_matrix * model_matrix * pos;
-		v_pos = vec3(model_matrix * boneTransform * pos);
-		tex_cord = uv;
-		v_normal = mat3(transpose(inverse(model_matrix * boneTransform))) * normal;
-		v_normal = normalize(v_normal);
-	}
-
-	)";
-const char* fragmentShaderSource = R"(
-	#version 440 core
-
-	in vec2 tex_cord;
-	in vec3 v_normal;
-	in vec3 v_pos;
-	in vec4 bw;
-	out vec4 color;
-
-	uniform sampler2D diff_texture;
-
-	vec3 lightPos = vec3(0.2, 1.0, -3.0);
-	
-	void main()
-	{
-		vec3 lightDir = normalize(lightPos - v_pos);
-		float diff = max(dot(v_normal, lightDir), 0.2);
-		vec3 dCol = diff * texture(diff_texture, tex_cord).rgb; 
-		color = vec4(dCol, 1);
-	}
-	)";
 
 
 // 顶点
@@ -433,17 +379,15 @@ int main(int argc, char ** argv) {
 	std::vector<glm::mat4> currentPose = {};
 	currentPose.resize(boneCount, identity);
 
-	uint shader = createShader(vertexShaderSource, fragmentShaderSource);
+	Shader shader("./../resources/shaders/vertext.txt", "./../resources/shaders/fragment.txt");
 
 	//获取所有着色器的uniform位置
-	uint viewProjectionMatrixLocation = glGetUniformLocation(shader, "view_projection_matrix");
-	uint modelMatrixLocation = glGetUniformLocation(shader, "model_matrix");
-	uint boneMatricesLocation = glGetUniformLocation(shader, "bone_transforms");
-	uint textureLocation = glGetUniformLocation(shader, "diff_texture");
+	uint boneMatricesLocation = glGetUniformLocation(shader.ID, "bone_transforms");
+	uint textureLocation = glGetUniformLocation(shader.ID, "diff_texture");
 
 
 
-	//初始化投影视图和模型矩阵
+	// initialize projection view and model matrix
 	glm::mat4 projectionMatrix = glm::perspective(75.0f, (float)windowWidth / windowHeight, 0.01f, 100.0f);
 
 	glm::mat4 viewMatrix = glm::lookAt(glm::vec3(0.0f, 0.2f, -5.0f)
@@ -467,10 +411,11 @@ int main(int argc, char ** argv) {
 		getPose(animation, skeleton, elapsedTime, currentPose, identity, globalInverseTransform);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glUseProgram(shader);
-		glUniformMatrix4fv(viewProjectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(viewProjectionMatrix));
-		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-		glUniformMatrix4fv(boneMatricesLocation,boneCount, GL_FALSE, glm::value_ptr(currentPose[0]));
+
+		shader.use();
+		shader.setMat4("view_projection_matrix", viewProjectionMatrix);
+		shader.setMat4("model_matrix", modelMatrix);
+		shader.setMat4("bone_transforms", boneCount, currentPose[0]);
 
 		glBindVertexArray(vao);
 		glActiveTexture(GL_TEXTURE0);

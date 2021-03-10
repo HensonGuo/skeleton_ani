@@ -6,7 +6,6 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <assimp/scene.h>
 
@@ -36,50 +35,6 @@ inline glm::quat assimpToGlmQuat(aiQuaternion quat) {
 	q.w = quat.w;
 
 	return q;
-}
-
-
-
-inline unsigned int createShader(const char* vertexStr, const char* fragmentStr) {
-	int success;
-	char info_log[512];
-	uint
-		program = glCreateProgram(),
-		vShader = glCreateShader(GL_VERTEX_SHADER),
-		fShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-	glShaderSource(vShader, 1, &vertexStr, 0);
-	glCompileShader(vShader);
-	glGetShaderiv(vShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(vShader, 512, 0, info_log);
-		std::cout << "vertex shader compilation failed!\n" << info_log << std::endl;
-	}
-	glShaderSource(fShader, 1, &fragmentStr, 0);
-	glCompileShader(fShader);
-	glGetShaderiv(fShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fShader, 512, 0, info_log);
-		std::cout << "fragment shader compilation failed!\n" << info_log << std::endl;
-	}
-
-	glAttachShader(program, vShader);
-	glAttachShader(program, fShader);
-	glLinkProgram(program);
-	glGetProgramiv(program, GL_LINK_STATUS, &success);
-	if (!success)
-	{
-		glGetProgramInfoLog(program, 512, 0, info_log);
-		std::cout << "program linking failed!\n" << info_log << std::endl;
-	}
-	glDetachShader(program, vShader);
-	glDeleteShader(vShader);
-	glDetachShader(program, fShader);
-	glDeleteShader(fShader);
-
-	return program;
 }
 
 inline GLFWwindow* initWindow(int &windowWidth,int &windowHeight) {
