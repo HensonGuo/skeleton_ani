@@ -18,99 +18,9 @@ void Model::loadModel(const string& path)
 	globalInverseTransform = assimpToGlmMatrix(scene->mRootNode->mTransformation);
 	globalInverseTransform = glm::inverse(globalInverseTransform);
 
-	vertices = {};
-	indices = {};
-
-	//load position, normal, uvglm::
-	for (unsigned int i = 0; i < aimesh->mNumVertices; i++) {
-		//位置
-		Vertex vertex;
-		vec3 vector;
-		vector.x = aimesh->mVertices[i].x;
-		vector.y = aimesh->mVertices[i].y;
-		vector.z = aimesh->mVertices[i].z;
-		vertex.position = vector;
-		//法线
-		vector.x = aimesh->mNormals[i].x;
-		vector.y = aimesh->mNormals[i].y;
-		vector.z = aimesh->mNormals[i].z;
-		vertex.normal = vector;
-		//uv
-		vec2 vec;
-		vec.x = aimesh->mTextureCoords[0][i].x;
-		vec.y = aimesh->mTextureCoords[0][i].y;
-		vertex.uv = vec;
-
-		vertex.boneIds = ivec4(0);
-		vertex.boneWeights = vec4(0.0f);
-
-		vertices.push_back(vertex);
-	}
-
-	//将boneData加载到顶点
-	unordered_map<string, pair<int, mat4>> boneInfo = {};
-	vector<uint> boneCounts;
-	boneCounts.resize(vertices.size(), 0);
-	boneCount = aimesh->mNumBones;
-
-	//循环每个骨骼
-	for (uint i = 0; i < boneCount; i++) {
-		aiBone* bone = aimesh->mBones[i];
-		mat4 m = assimpToGlmMatrix(bone->mOffsetMatrix);
-		boneInfo[bone->mName.C_Str()] = { i, m };
-
-		//循环每个顶点
-		for (int j = 0; j < bone->mNumWeights; j++) {
-			uint id = bone->mWeights[j].mVertexId;
-			float weight = bone->mWeights[j].mWeight;
-			boneCounts[id]++;
-			switch (boneCounts[id]) {
-			case 1:
-				vertices[id].boneIds.x = i;
-				vertices[id].boneWeights.x = weight;
-				break;
-			case 2:
-				vertices[id].boneIds.y = i;
-				vertices[id].boneWeights.y = weight;
-				break;
-			case 3:
-				vertices[id].boneIds.z = i;
-				vertices[id].boneWeights.z = weight;
-				break;
-			case 4:
-				vertices[id].boneIds.w = i;
-				vertices[id].boneWeights.w = weight;
-				break;
-			default:
-				//cout << "err: 无法将骨骼分配给顶点" << endl;
-				break;
-
-			}
-		}
-	}
-
-	//将权重标准化，使所有权重总和为1
-	for (int i = 0; i < vertices.size(); i++) {
-		vec4& boneWeights = vertices[i].boneWeights;
-		float totalWeight = boneWeights.x + boneWeights.y + boneWeights.z + boneWeights.w;
-		if (totalWeight > 0.0f) {
-			vertices[i].boneWeights = vec4(
-				boneWeights.x / totalWeight,
-				boneWeights.y / totalWeight,
-				boneWeights.z / totalWeight,
-				boneWeights.w / totalWeight
-			);
-		}
-	}
-
-
-	//加载 indices
-	for (int i = 0; i < aimesh->mNumFaces; i++) {
-		aiFace& face = aimesh->mFaces[i];
-		for (unsigned int j = 0; j < face.mNumIndices; j++)
-			indices.push_back(face.mIndices[j]);
-	}
-
+	readVertices(aimesh);
+	readIndices(aimesh);
+	readBones(aimesh);
 	readSkeleton(skeleton, scene->mRootNode, boneInfo);
 	readTexture("./../resources/diffuse.png");
 	readAnimation(scene);
@@ -171,6 +81,87 @@ void Model::getPose(vector<mat4>& output, Bone& skeletion, float dt, mat4& paren
 		getPose(output, child, dt, globalTransform, globalInverseTransform);
 	}
 	//cout << dt << " => " << position.x << ":" << position.y << ":" << position.z << ":" << endl;
+}
+
+void Model::readVertices(aiMesh* aimesh)
+{
+	vertices = {};
+	for (unsigned int i = 0; i < aimesh->mNumVertices; i++) {
+		//位置
+		Vertex vertex;
+		vertex.position = assimpToGlmVec3(aimesh->mVertices[i]);
+		//法线
+		if (aimesh->mNormals) {
+			vertex.normal = assimpToGlmVec3(aimesh->mNormals[i]);
+		}
+		else
+		{
+			vertex.normal = vec3();
+		}
+		//uv
+		vec2 vec;
+		vec.x = aimesh->mTextureCoords[0][i].x;
+		vec.y = aimesh->mTextureCoords[0][i].y;
+		vertex.uv = vec;
+
+		vertex.boneIds = ivec4(0);
+		vertex.boneWeights = vec4(0.0f);
+
+		vertices.push_back(vertex);
+	}
+}
+
+void Model::readIndices(aiMesh* aimesh)
+{
+	indices = {};
+	for (int i = 0; i < aimesh->mNumFaces; i++) {
+		aiFace& face = aimesh->mFaces[i];
+		for (unsigned int j = 0; j < face.mNumIndices; j++)
+			indices.push_back(face.mIndices[j]);
+	}
+}
+
+void Model::readBones(aiMesh* aimesh)
+{
+	vector<uint> boneCounts;
+	boneCounts.resize(vertices.size(), 0);
+	boneCount = aimesh->mNumBones;
+
+	//循环每个骨骼
+	for (uint i = 0; i < boneCount; i++) {
+		aiBone* bone = aimesh->mBones[i];
+		mat4 m = assimpToGlmMatrix(bone->mOffsetMatrix);
+		boneInfo[bone->mName.C_Str()] = { i, m };
+
+		//循环每个顶点
+		for (int j = 0; j < bone->mNumWeights; j++) {
+			uint id = bone->mWeights[j].mVertexId;
+			float weight = bone->mWeights[j].mWeight;
+			boneCounts[id]++;
+			switch (boneCounts[id]) {
+			case 1:
+				vertices[id].boneIds.x = i;
+				vertices[id].boneWeights.x = weight;
+				break;
+			case 2:
+				vertices[id].boneIds.y = i;
+				vertices[id].boneWeights.y = weight;
+				break;
+			case 3:
+				vertices[id].boneIds.z = i;
+				vertices[id].boneWeights.z = weight;
+				break;
+			case 4:
+				vertices[id].boneIds.w = i;
+				vertices[id].boneWeights.w = weight;
+				break;
+			default:
+				//cout << "err: 无法将骨骼分配给顶点" << endl;
+				break;
+
+			}
+		}
+	}
 }
 
 bool Model::readSkeleton(Bone& boneOutput, aiNode* node, unordered_map<string, pair<int, mat4>>& boneInfoTable)
@@ -251,6 +242,23 @@ void Model::readAnimation(const aiScene* scene)
 
 		}
 		animation.boneTransforms[channel->mNodeName.C_Str()] = track;
+	}
+}
+
+void Model::normalizeBonesWeight()
+{
+	//将权重标准化，使所有权重总和为1
+	for (int i = 0; i < vertices.size(); i++) {
+		vec4& boneWeights = vertices[i].boneWeights;
+		float totalWeight = boneWeights.x + boneWeights.y + boneWeights.z + boneWeights.w;
+		if (totalWeight > 0.0f) {
+			vertices[i].boneWeights = vec4(
+				boneWeights.x / totalWeight,
+				boneWeights.y / totalWeight,
+				boneWeights.z / totalWeight,
+				boneWeights.w / totalWeight
+			);
+		}
 	}
 }
 

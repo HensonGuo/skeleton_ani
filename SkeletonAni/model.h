@@ -39,9 +39,13 @@ public:
 	void getPose(std::vector<glm::mat4>& output, Bone& skeletion, float dt, mat4& parentTransform, mat4& globalInverseTransform);
 
 private:
+	void readVertices(aiMesh* aimesh);
+	void readIndices(aiMesh* aimesh);
+	void readBones(aiMesh* aimesh);
 	bool readSkeleton(Bone& boneOutput, aiNode* node, unordered_map<string, pair<int, mat4>>& boneInfoTable);
 	void readTexture(const string& path);
 	void readAnimation(const aiScene* scene);
+	void normalizeBonesWeight();
 	std::pair<uint, float> getTimeFraction(std::vector<float>& times, float& dt);
 	
 	Mesh mesh;
@@ -49,6 +53,7 @@ private:
 	vector<Vertex> vertices = {};
 	vector<uint> indices = {};
 	uint boneCount = 0;
+	unordered_map<string, pair<int, mat4>> boneInfo = {};
 	Bone skeleton;
 	Animation animation;
 	//将姿势保存在currentPose向量中，并作为矩阵数组上传到gpu
