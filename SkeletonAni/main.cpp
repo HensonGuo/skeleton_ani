@@ -12,6 +12,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "shader.h"
+#include "mesh.h"
 
 
 /*
@@ -21,15 +22,6 @@ todo
 在shader里面打印调试信息
 */
 
-
-// 顶点
-struct Vertex {
-	glm::vec3 position;
-	glm::vec3 normal;
-	glm::vec2 uv;
-	glm::vec4 boneIds = glm::vec4(0);
-	glm::vec4 boneWeights = glm::vec4(0.0f);
-};
 
 // 骨骼
 struct Bone {
@@ -218,36 +210,6 @@ void loadAnimation(const aiScene* scene, Animation& animation) {
 	}
 }
 
-unsigned int createVertexArray(std::vector<Vertex>& vertices, std::vector<uint> indices) {
-	uint
-		vao = 0,
-		vbo = 0,
-		ebo = 0;
-
-	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vbo);
-	glGenBuffers(1, &ebo);
-
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, normal));
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, uv));
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, boneIds));
-	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, boneWeights));
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint), &indices[0], GL_STATIC_DRAW);
-	glBindVertexArray(0);
-	return vao;
-}
-
 uint createTexture(std::string filepath) {
 	uint textureId = 0;
 	int width, height, nrChannels;
@@ -352,7 +314,7 @@ int main(int argc, char ** argv) {
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 		std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
 	}
-	aiMesh* mesh = scene->mMeshes[0];
+	aiMesh* aimesh = scene->mMeshes[0];
 
 	std::vector<Vertex> vertices = {};
 	std::vector<uint> indices = {};
@@ -367,11 +329,11 @@ int main(int argc, char ** argv) {
 	globalInverseTransform = glm::inverse(globalInverseTransform);
 	
 
-	loadModel(scene, mesh, vertices, indices, skeleton, boneCount);
+	loadModel(scene, aimesh, vertices, indices, skeleton, boneCount);
 	loadAnimation(scene, animation);
 
-	vao = createVertexArray(vertices, indices);
 	diffuseTexture = createTexture("./../resources/diffuse.png");
+	Mesh aMesh(vertices, indices, diffuseTexture);
 
 	glm::mat4 identity(1.0);
 
@@ -417,12 +379,7 @@ int main(int argc, char ** argv) {
 		shader.setMat4("model_matrix", modelMatrix);
 		shader.setMat4("bone_transforms", boneCount, currentPose[0]);
 
-		glBindVertexArray(vao);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-		glUniform1i(textureLocation, 0);
-
-		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+		aMesh.draw(shader.ID);
 
 		// glfw: 交换缓冲区和轮询IO事件（按下/释放按键，移动鼠标等）
 		glfwSwapBuffers(window);
