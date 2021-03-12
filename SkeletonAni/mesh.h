@@ -1,10 +1,9 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
 #include <string>
-#include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glad/glad.h>
 
 
 using namespace std;
@@ -23,6 +22,7 @@ struct Vertex {
 class Mesh
 {
 public:
+	Mesh();
 	Mesh(vector<Vertex> vertices, vector<GLuint> indices, GLuint texture);
 
 	void draw(GLuint shaders_program);
