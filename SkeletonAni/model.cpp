@@ -14,19 +14,23 @@ void Model::loadModel(const string& path)
 		cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
 	}
 	aiMesh* aimesh = scene->mMeshes[0];
-
 	globalInverseTransform = assimpToGlmMatrix(scene->mRootNode->mTransformation);
 	globalInverseTransform = glm::inverse(globalInverseTransform);
+
+	directory = path.substr(0, path.find_last_of('/'));
 
 	readVertices(aimesh);
 	readIndices(aimesh);
 	readBones(aimesh);
 	readSkeleton(skeleton, scene->mRootNode, boneInfo);
-	readTexture("./../resources/diffuse.png");
+	if (aimesh->mMaterialIndex >= 0)
+	{
+		readMaterial(scene->mMaterials[aimesh->mMaterialIndex]);
+	}	
 	readAnimation(scene);
 	identity = mat4(1.0);
 	currentPose.resize(boneCount, identity);
-	mesh = Mesh(vertices, indices, textureId);
+	mesh = Mesh(vertices, indices, materials);
 }
 
 void Model::draw(Shader& shader)
@@ -114,7 +118,7 @@ void Model::readVertices(aiMesh* aimesh)
 void Model::readIndices(aiMesh* aimesh)
 {
 	indices = {};
-	for (int i = 0; i < aimesh->mNumFaces; i++) {
+	for (unsigned int i = 0; i < aimesh->mNumFaces; i++) {
 		aiFace& face = aimesh->mFaces[i];
 		for (unsigned int j = 0; j < face.mNumIndices; j++)
 			indices.push_back(face.mIndices[j]);
@@ -134,7 +138,7 @@ void Model::readBones(aiMesh* aimesh)
 		boneInfo[bone->mName.C_Str()] = { i, m };
 
 		//循环每个顶点
-		for (int j = 0; j < bone->mNumWeights; j++) {
+		for (unsigned int j = 0; j < bone->mNumWeights; j++) {
 			uint id = bone->mWeights[j].mVertexId;
 			float weight = bone->mWeights[j].mWeight;
 			boneCounts[id]++;
@@ -171,7 +175,7 @@ bool Model::readSkeleton(Bone& boneOutput, aiNode* node, unordered_map<string, p
 		boneOutput.id = boneInfoTable[boneOutput.name].first;
 		boneOutput.offset = boneInfoTable[boneOutput.name].second;
 
-		for (int i = 0; i < node->mNumChildren; i++) {
+		for (unsigned int i = 0; i < node->mNumChildren; i++) {
 			Bone child;
 			readSkeleton(child, node->mChildren[i], boneInfoTable);
 			boneOutput.children.push_back(child);
@@ -179,7 +183,7 @@ bool Model::readSkeleton(Bone& boneOutput, aiNode* node, unordered_map<string, p
 		return true;
 	}
 	else { // find bones in children
-		for (int i = 0; i < node->mNumChildren; i++) {
+		for (unsigned int i = 0; i < node->mNumChildren; i++) {
 			if (readSkeleton(boneOutput, node->mChildren[i], boneInfoTable)) {
 				return true;
 			}
@@ -189,23 +193,14 @@ bool Model::readSkeleton(Bone& boneOutput, aiNode* node, unordered_map<string, p
 	return false;
 }
 
-void Model::readTexture(const string& path)
+void Model::readMaterial(aiMaterial* material)
 {
-	int width, height, nrChannels;
-	byte* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 4);
-	glGenTextures(1, &textureId);
-	glBindTexture(GL_TEXTURE_2D, textureId);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 3);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-
-	stbi_image_free(data);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	//漫反射贴图
+	Material* diffuseMaterial = new Material(material, aiTextureType_DIFFUSE, "diffuse", directory);
+	materials.push_back(diffuseMaterial);
+	//高光贴图
+	Material* specularMaterial = new Material(material, aiTextureType_DIFFUSE, "specular", directory);
+	materials.push_back(specularMaterial);
 }
 
 void Model::readAnimation(const aiScene* scene)
@@ -224,19 +219,19 @@ void Model::readAnimation(const aiScene* scene)
 
 	//加载位置每个骨骼的旋转和缩放
 	//每个通道代表每个骨骼
-	for (int i = 0; i < anim->mNumChannels; i++) {
+	for (unsigned int i = 0; i < anim->mNumChannels; i++) {
 		aiNodeAnim* channel = anim->mChannels[i];
 		BoneTransformTrack track;
-		for (int j = 0; j < channel->mNumPositionKeys; j++) {
+		for (unsigned int j = 0; j < channel->mNumPositionKeys; j++) {
 			track.positionTimestamps.push_back(channel->mPositionKeys[j].mTime);
 			track.positions.push_back(assimpToGlmVec3(channel->mPositionKeys[j].mValue));
 		}
-		for (int j = 0; j < channel->mNumRotationKeys; j++) {
+		for (unsigned int j = 0; j < channel->mNumRotationKeys; j++) {
 			track.rotationTimestamps.push_back(channel->mRotationKeys[j].mTime);
 			track.rotations.push_back(assimpToGlmQuat(channel->mRotationKeys[j].mValue));
 
 		}
-		for (int j = 0; j < channel->mNumScalingKeys; j++) {
+		for (unsigned int j = 0; j < channel->mNumScalingKeys; j++) {
 			track.scaleTimestamps.push_back(channel->mScalingKeys[j].mTime);
 			track.scales.push_back(assimpToGlmVec3(channel->mScalingKeys[j].mValue));
 

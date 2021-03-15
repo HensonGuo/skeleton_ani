@@ -3,8 +3,8 @@
 #include "mesh.h"
 #include "bone.h"
 #include "utils.h"
-#include "stb_image.h"
 #include "shader.h"
+#include "material.h"
 
 #include <iostream>
 #include <unordered_map>
@@ -25,8 +25,8 @@ using namespace glm;
 
 // ¶¯»­
 struct Animation {
-	float duration = 0.0f;
-	float ticksPerSecond = 1.0f;
+	double duration = 0.0f;
+	double ticksPerSecond = 1.0f;
 	unordered_map<string, BoneTransformTrack> boneTransforms = {};
 };
 
@@ -43,13 +43,15 @@ private:
 	void readIndices(aiMesh* aimesh);
 	void readBones(aiMesh* aimesh);
 	bool readSkeleton(Bone& boneOutput, aiNode* node, unordered_map<string, pair<int, mat4>>& boneInfoTable);
-	void readTexture(const string& path);
+	void readMaterial(aiMaterial* material);
 	void readAnimation(const aiScene* scene);
 	void normalizeBonesWeight();
 	std::pair<uint, float> getTimeFraction(std::vector<float>& times, float& dt);
 	
-	Mesh mesh;
-	GLuint textureId = 0;
+	string directory;
+
+	Mesh mesh;	
+	vector<Material*> materials = {};
 	vector<Vertex> vertices = {};
 	vector<uint> indices = {};
 	uint boneCount = 0;

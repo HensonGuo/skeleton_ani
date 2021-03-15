@@ -4,22 +4,24 @@ Mesh::Mesh()
 {
 }
 
-Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, GLuint texture)
+Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Material*> &materials)
 {
 	this->vertices = vertices;
 	this->indices = indices;
-	this->texture = texture;
+	this->materials = materials;
 	this->SetupMesh();
 }
 
 void Mesh::draw(GLuint shaderID)
 {
+	//²ÄÖÊ
+	for (int i = 0; i < materials.size(); i++) {
+		this->materials[i]->draw(shaderID);
+	}
+	//¶¥µã
 	glBindVertexArray(VAO);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glUniform1i(glGetUniformLocation(shaderID, "diff_texture"), 0);
-
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
 }
 
 void Mesh::SetupMesh()

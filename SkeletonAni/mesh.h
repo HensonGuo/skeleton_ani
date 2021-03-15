@@ -4,6 +4,7 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <glad/glad.h>
+#include "material.h"
 
 
 using namespace std;
@@ -23,7 +24,7 @@ class Mesh
 {
 public:
 	Mesh();
-	Mesh(vector<Vertex> vertices, vector<GLuint> indices, GLuint texture);
+	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Material*> &materials);
 
 	void draw(GLuint shaders_program);
 
@@ -31,7 +32,7 @@ private:
 	//Mesh data
 	vector<Vertex> vertices;
 	vector<GLuint> indices;
-	GLuint texture;
+	vector<Material*> materials;
 
 	GLuint VAO;
 	GLuint VBO;
