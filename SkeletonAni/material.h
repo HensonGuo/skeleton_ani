@@ -25,4 +25,5 @@ public:
 	Material(aiMaterial* mat, aiTextureType type, string type_name, const string directory);
 	GLuint loadImage(const char* imagePath);
 	void draw(GLuint shaders_program);
+	void reset();
 };

@@ -90,3 +90,11 @@ void Material::draw(GLuint shaders_program)
 		glUniform1i(glGetUniformLocation(shaders_program, ("material." + name + number).c_str()), i);
 	}
 }
+
+void Material::reset()
+{
+	for (int i = 0; i < textures.size(); i++) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+}

@@ -21,5 +21,6 @@ void main()
 	vec3 lightDir = normalize(lightPos - v_pos);
 	float diff = max(dot(v_normal, lightDir), 0.2);
 	vec3 dCol = diff * texture(material.diffuse1, tex_cord).rgb; 
-	color = vec4(dCol, 1);
+	vec3 sCol = diff * texture(material.specular1, tex_cord).rgb; 
+	color = vec4(dCol+sCol, 1);
 }

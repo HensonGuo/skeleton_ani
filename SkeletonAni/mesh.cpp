@@ -21,6 +21,10 @@ void Mesh::draw(GLuint shaderID)
 	//∂•µ„
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	//÷ÿ÷√
+	for (int i = 0; i < materials.size(); i++) {
+		this->materials[i]->reset();
+	}
 	glBindVertexArray(0);
 }
 
