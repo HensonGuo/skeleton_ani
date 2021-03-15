@@ -19,6 +19,15 @@ void Model::loadModel(const string& path)
 
 	directory = path.substr(0, path.find_last_of('/'));
 
+	cout << " \n------------------------------- Details Info-------------------------------------------- \n " << endl;
+	cout << "              Animations: " << scene->HasAnimations() << endl;
+	cout << "                  Meshes: " << scene->mNumMeshes << endl;
+	cout << "              Bone Count: " << scene->mAnimations[0]->mNumChannels << endl;
+	cout << "      Animation Duration: " << scene->mAnimations[0]->mDuration << endl;
+	cout << "Animation TicksPerSecond: " << scene->mAnimations[0]->mTicksPerSecond << endl << endl;
+
+	showNodeName(scene->mRootNode);
+
 	readVertices(aimesh);
 	readIndices(aimesh);
 	readBones(aimesh);
@@ -138,7 +147,7 @@ void Model::readBones(aiMesh* aimesh)
 		boneInfo[bone->mName.C_Str()] = { i, m };
 
 		//循环每个顶点
-		for (unsigned int j = 0; j < bone->mNumWeights; j++) {
+		for (uint j = 0; j < bone->mNumWeights; j++) {
 			uint id = bone->mWeights[j].mVertexId;
 			float weight = bone->mWeights[j].mWeight;
 			boneCounts[id]++;
@@ -175,7 +184,7 @@ bool Model::readSkeleton(Bone& boneOutput, aiNode* node, unordered_map<string, p
 		boneOutput.id = boneInfoTable[boneOutput.name].first;
 		boneOutput.offset = boneInfoTable[boneOutput.name].second;
 
-		for (unsigned int i = 0; i < node->mNumChildren; i++) {
+		for (uint i = 0; i < node->mNumChildren; i++) {
 			Bone child;
 			readSkeleton(child, node->mChildren[i], boneInfoTable);
 			boneOutput.children.push_back(child);
@@ -183,7 +192,7 @@ bool Model::readSkeleton(Bone& boneOutput, aiNode* node, unordered_map<string, p
 		return true;
 	}
 	else { // find bones in children
-		for (unsigned int i = 0; i < node->mNumChildren; i++) {
+		for (uint i = 0; i < node->mNumChildren; i++) {
 			if (readSkeleton(boneOutput, node->mChildren[i], boneInfoTable)) {
 				return true;
 			}
@@ -219,19 +228,19 @@ void Model::readAnimation(const aiScene* scene)
 
 	//加载位置每个骨骼的旋转和缩放
 	//每个通道代表每个骨骼
-	for (unsigned int i = 0; i < anim->mNumChannels; i++) {
+	for (uint i = 0; i < anim->mNumChannels; i++) {
 		aiNodeAnim* channel = anim->mChannels[i];
 		BoneTransformTrack track;
-		for (unsigned int j = 0; j < channel->mNumPositionKeys; j++) {
+		for (uint j = 0; j < channel->mNumPositionKeys; j++) {
 			track.positionTimestamps.push_back(channel->mPositionKeys[j].mTime);
 			track.positions.push_back(assimpToGlmVec3(channel->mPositionKeys[j].mValue));
 		}
-		for (unsigned int j = 0; j < channel->mNumRotationKeys; j++) {
+		for (uint j = 0; j < channel->mNumRotationKeys; j++) {
 			track.rotationTimestamps.push_back(channel->mRotationKeys[j].mTime);
 			track.rotations.push_back(assimpToGlmQuat(channel->mRotationKeys[j].mValue));
 
 		}
-		for (unsigned int j = 0; j < channel->mNumScalingKeys; j++) {
+		for (uint j = 0; j < channel->mNumScalingKeys; j++) {
 			track.scaleTimestamps.push_back(channel->mScalingKeys[j].mTime);
 			track.scales.push_back(assimpToGlmVec3(channel->mScalingKeys[j].mValue));
 
@@ -266,4 +275,12 @@ pair<uint, float> Model::getTimeFraction(vector<float>& times, float& dt)
 	float end = times[segment];
 	float frac = (dt - start) / (end - start);
 	return { segment, frac };
+}
+
+void Model::showNodeName(aiNode* node)
+{
+	cout << node->mName.data << endl;
+	for (uint i = 0; i < node->mNumChildren; i++) {
+		showNodeName(node->mChildren[i]);
+	}
 }

@@ -18,6 +18,7 @@ inline glm::mat4 assimpToGlmMatrix(aiMatrix4x4 mat) {
 	}
 	return m;
 }
+
 inline glm::vec3 assimpToGlmVec3(aiVector3D vec) {
 	return glm::vec3(vec.x, vec.y, vec.z);
 }

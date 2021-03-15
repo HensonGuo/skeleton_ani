@@ -47,6 +47,7 @@ private:
 	void readAnimation(const aiScene* scene);
 	void normalizeBonesWeight();
 	std::pair<uint, float> getTimeFraction(std::vector<float>& times, float& dt);
+	void showNodeName(aiNode* node);
 	
 	string directory;
 
