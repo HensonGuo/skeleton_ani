@@ -12,6 +12,7 @@ void Model::loadModel(const string& path)
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 		cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
+		return;
 	}
 	aiMesh* aimesh = scene->mMeshes[0];
 	globalInverseTransform = assimpToGlmMatrix(scene->mRootNode->mTransformation);
@@ -104,18 +105,22 @@ void Model::readVertices(aiMesh* aimesh)
 		Vertex vertex;
 		vertex.position = assimpToGlmVec3(aimesh->mVertices[i]);
 		//法线
-		if (aimesh->mNormals) {
+		if (aimesh->HasNormals()) {
 			vertex.normal = assimpToGlmVec3(aimesh->mNormals[i]);
 		}
 		else
 		{
 			vertex.normal = vec3();
 		}
-		//uv
+		//纹理
 		vec2 vec;
-		vec.x = aimesh->mTextureCoords[0][i].x;
-		vec.y = aimesh->mTextureCoords[0][i].y;
-		vertex.uv = vec;
+		if (aimesh->HasTextureCoords(0))
+		{
+			//一个顶点最多可以包含8个不同的纹理坐标。非多个纹理坐标的模型，取第一组（0）
+			vec.x = aimesh->mTextureCoords[0][i].x;
+			vec.y = aimesh->mTextureCoords[0][i].y;
+		}
+		vertex.texCoords = vec;
 
 		vertex.boneIds = ivec4(0);
 		vertex.boneWeights = vec4(0.0f);

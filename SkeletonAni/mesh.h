@@ -15,7 +15,7 @@ using namespace glm;
 struct Vertex {
 	vec3 position;
 	vec3 normal;
-	vec2 uv;
+	vec2 texCoords;
 	vec4 boneIds = glm::vec4(0);
 	vec4 boneWeights = glm::vec4(0.0f);
 };
