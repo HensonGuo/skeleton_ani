@@ -1,11 +1,12 @@
 #pragma once
 
 #include <vector>
-#include <glad/glad.h>
 #include <iostream>
 #include <assimp/scene.h>
 #include <string>
+
 #include "stb_image.h"
+#include "shader.h"
 
 
 using namespace std;
@@ -24,6 +25,6 @@ public:
 	vector<Texture> textures;
 	Material(aiMaterial* mat, aiTextureType type, string type_name, const string directory);
 	GLuint loadImage(const char* imagePath);
-	void draw(GLuint shaders_program);
+	void draw(Shader& shader);
 	void reset();
 };

@@ -2,6 +2,7 @@
 
 Model::Model(const string& path)
 {
+	this->skeleton = new Skeleton();
 	this->loadModel(path);
 }
 
@@ -14,88 +15,42 @@ void Model::loadModel(const string& path)
 		cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
 		return;
 	}
-	aiMesh* aimesh = scene->mMeshes[0];
-	globalInverseTransform = assimpToGlmMatrix(scene->mRootNode->mTransformation);
-	globalInverseTransform = glm::inverse(globalInverseTransform);
 
 	directory = path.substr(0, path.find_last_of('/'));
 
 	cout << " \n------------------------------- Details Info-------------------------------------------- \n " << endl;
 	cout << "              Animations: " << scene->HasAnimations() << endl;
 	cout << "                  Meshes: " << scene->mNumMeshes << endl;
-	cout << "              Bone Count: " << scene->mAnimations[0]->mNumChannels << endl;
-	cout << "      Animation Duration: " << scene->mAnimations[0]->mDuration << endl;
-	cout << "Animation TicksPerSecond: " << scene->mAnimations[0]->mTicksPerSecond << endl << endl;
+	if (scene->HasAnimations())
+	{
+		cout << "              Bone Count: " << scene->mAnimations[0]->mNumChannels << endl;
+		cout << "      Animation Duration: " << scene->mAnimations[0]->mDuration << endl;
+		cout << "Animation TicksPerSecond: " << scene->mAnimations[0]->mTicksPerSecond << endl << endl;
+	}
 
-	showNodeName(scene->mRootNode);
-
+	aiMesh* aimesh = scene->mMeshes[0];
+	aiNode* rootNode = scene->mRootNode;
+	showNodeName(rootNode);
 	readVertices(aimesh);
 	readIndices(aimesh);
-	readBones(aimesh);
-	readSkeleton(skeleton, scene->mRootNode, boneInfo);
+	readSkeleton(scene, aimesh, rootNode);
+
 	if (aimesh->mMaterialIndex >= 0)
 	{
 		readMaterial(scene->mMaterials[aimesh->mMaterialIndex]);
-	}	
-	readAnimation(scene);
-	identity = mat4(1.0);
-	currentPose.resize(boneCount, identity);
+	}
+
+	setVerticesWeights(aimesh);
+	//normalizeBonesWeight();
 	mesh = Mesh(vertices, indices, materials);
 }
 
 void Model::draw(Shader& shader)
 {
-	mesh.draw(shader.ID);
-	float elapsedTime = glfwGetTime();
-	getPose(currentPose, skeleton, elapsedTime, identity, globalInverseTransform);
-	shader.setMat4("bone_transforms", boneCount, currentPose[0]);
+	mesh.draw(shader);
+	skeleton->draw(shader);
 }
 
-void Model::getPose(vector<mat4>& output, Bone& skeletion, float dt, mat4& parentTransform, mat4& globalInverseTransform)
-{
-	BoneTransformTrack& btt = animation.boneTransforms[skeletion.name];
-	dt = fmod(dt, animation.duration);
-	pair<uint, float> fp;
-	//计算插值位置
-	fp = getTimeFraction(btt.positionTimestamps, dt);
-
-	vec3 position1 = btt.positions[fp.first - 1];
-	vec3 position2 = btt.positions[fp.first];
-
-	vec3 position = glm::mix(position1, position2, fp.second);
-
-	//计算插值旋转
-	fp = getTimeFraction(btt.rotationTimestamps, dt);
-	quat rotation1 = btt.rotations[fp.first - 1];
-	quat rotation2 = btt.rotations[fp.first];
-
-	quat rotation = glm::slerp(rotation1, rotation2, fp.second);
-
-	//计算插值缩放
-	fp = getTimeFraction(btt.scaleTimestamps, dt);
-	vec3 scale1 = btt.scales[fp.first - 1];
-	vec3 scale2 = btt.scales[fp.first];
-
-	vec3 scale = glm::mix(scale1, scale2, fp.second);
-
-	mat4 positionMat = mat4(1.0),
-		scaleMat = mat4(1.0);
-
-
-	//计算局部变换
-	positionMat = glm::translate(positionMat, position);
-	mat4 rotationMat = glm::toMat4(rotation);
-	scaleMat = glm::scale(scaleMat, scale);
-	mat4 localTransform = positionMat * rotationMat * scaleMat;
-	mat4 globalTransform = parentTransform * localTransform;
-
-	output[skeletion.id] = globalInverseTransform * globalTransform * skeletion.offset;
-	//更新子骨骼的值
-	for (Bone& child : skeletion.children) {
-		getPose(output, child, dt, globalTransform, globalInverseTransform);
-	}
-	//cout << dt << " => " << position.x << ":" << position.y << ":" << position.z << ":" << endl;
-}
 
 void Model::readVertices(aiMesh* aimesh)
 {
@@ -139,7 +94,7 @@ void Model::readIndices(aiMesh* aimesh)
 	}
 }
 
-void Model::readBones(aiMesh* aimesh)
+void Model::setVerticesWeights(aiMesh* aimesh)
 {
 	vector<uint> boneCounts;
 	boneCounts.resize(vertices.size(), 0);
@@ -148,9 +103,7 @@ void Model::readBones(aiMesh* aimesh)
 	//循环每个骨骼
 	for (uint i = 0; i < boneCount; i++) {
 		aiBone* bone = aimesh->mBones[i];
-		mat4 m = assimpToGlmMatrix(bone->mOffsetMatrix);
-		boneInfo[bone->mName.C_Str()] = { i, m };
-
+		uint boneId = skeleton->boneName2Index.at(bone->mName.C_Str());
 		//循环每个顶点
 		for (uint j = 0; j < bone->mNumWeights; j++) {
 			uint id = bone->mWeights[j].mVertexId;
@@ -173,38 +126,48 @@ void Model::readBones(aiMesh* aimesh)
 				vertices[id].boneIds.w = i;
 				vertices[id].boneWeights.w = weight;
 				break;
-			default:
-				//cout << "err: 无法将骨骼分配给顶点" << endl;
-				break;
 
-			}
+// 			aiVertexWeight var = bone->mWeights[j];
+// 			uint index = indices[var.mVertexId];
+// 			Vertex* vertex = &vertices[index];
+// 			float weight = var.mWeight;
+// 
+// 			bool finded = false;
+// 			for (unsigned int k = 0; k < 4; k++)
+// 			{
+// 				if (vertex->boneWeights[k] < 0.0f)
+// 				{
+// 					vertex->boneWeights[k] = weight;
+// 					vertex->boneIds[k] = boneId;
+// 					finded = true;
+// 					break;
+// 				}
+// 			}
+// 			if (finded)
+// 				continue;
+// 
+// 			// 如果顶点受4个以上关节的影响，则保持较大值的顶点
+// 			for (unsigned int k = 0; k < 4; k++)
+// 			{
+// 				if (weight > vertex->boneWeights[k])
+// 				{
+// 					vertex->boneWeights[k] = weight;
+// 					vertex->boneIds[k] = boneId;
+// 					break;
+// 				}
+ 			}
 		}
 	}
 }
 
-bool Model::readSkeleton(Bone& boneOutput, aiNode* node, unordered_map<string, pair<int, mat4>>& boneInfoTable)
+void Model::readSkeleton(const aiScene* scene, aiMesh* mesh, aiNode* node)
 {
-	if (boneInfoTable.find(node->mName.C_Str()) != boneInfoTable.end()) { // if node is actually a bone
-		boneOutput.name = node->mName.C_Str();
-		boneOutput.id = boneInfoTable[boneOutput.name].first;
-		boneOutput.offset = boneInfoTable[boneOutput.name].second;
-
-		for (uint i = 0; i < node->mNumChildren; i++) {
-			Bone child;
-			readSkeleton(child, node->mChildren[i], boneInfoTable);
-			boneOutput.children.push_back(child);
-		}
-		return true;
-	}
-	else { // find bones in children
-		for (uint i = 0; i < node->mNumChildren; i++) {
-			if (readSkeleton(boneOutput, node->mChildren[i], boneInfoTable)) {
-				return true;
-			}
-
-		}
-	}
-	return false;
+	skeleton->readBones(mesh, node);
+	if (scene->HasAnimations() == false)
+		return;
+	//加载第一个动画
+	aiAnimation* ani = scene->mAnimations[0];
+	skeleton->readAnimation(ani);
 }
 
 void Model::readMaterial(aiMaterial* material)
@@ -215,43 +178,6 @@ void Model::readMaterial(aiMaterial* material)
 	//高光贴图
 	Material* specularMaterial = new Material(material, aiTextureType_DIFFUSE, "specular", directory);
 	materials.push_back(specularMaterial);
-}
-
-void Model::readAnimation(const aiScene* scene)
-{
-	//加载第一个动画
-	aiAnimation* anim = scene->mAnimations[0];
-
-	if (anim->mTicksPerSecond != 0.0f)
-		animation.ticksPerSecond = anim->mTicksPerSecond;
-	else
-		animation.ticksPerSecond = 1;
-
-
-	animation.duration = anim->mDuration * anim->mTicksPerSecond;
-	animation.boneTransforms = {};
-
-	//加载位置每个骨骼的旋转和缩放
-	//每个通道代表每个骨骼
-	for (uint i = 0; i < anim->mNumChannels; i++) {
-		aiNodeAnim* channel = anim->mChannels[i];
-		BoneTransformTrack track;
-		for (uint j = 0; j < channel->mNumPositionKeys; j++) {
-			track.positionTimestamps.push_back(channel->mPositionKeys[j].mTime);
-			track.positions.push_back(assimpToGlmVec3(channel->mPositionKeys[j].mValue));
-		}
-		for (uint j = 0; j < channel->mNumRotationKeys; j++) {
-			track.rotationTimestamps.push_back(channel->mRotationKeys[j].mTime);
-			track.rotations.push_back(assimpToGlmQuat(channel->mRotationKeys[j].mValue));
-
-		}
-		for (uint j = 0; j < channel->mNumScalingKeys; j++) {
-			track.scaleTimestamps.push_back(channel->mScalingKeys[j].mTime);
-			track.scales.push_back(assimpToGlmVec3(channel->mScalingKeys[j].mValue));
-
-		}
-		animation.boneTransforms[channel->mNodeName.C_Str()] = track;
-	}
 }
 
 void Model::normalizeBonesWeight()
@@ -269,17 +195,6 @@ void Model::normalizeBonesWeight()
 			);
 		}
 	}
-}
-
-pair<uint, float> Model::getTimeFraction(vector<float>& times, float& dt)
-{
-	uint segment = 0;
-	while (dt > times[segment])
-		segment++;
-	float start = times[segment - 1];
-	float end = times[segment];
-	float frac = (dt - start) / (end - start);
-	return { segment, frac };
 }
 
 void Model::showNodeName(aiNode* node)

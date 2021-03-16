@@ -36,6 +36,9 @@
     <ClInclude Include="material.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="skeleton.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
@@ -54,6 +57,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="material.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="skeleton.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="bone.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

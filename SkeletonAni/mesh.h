@@ -3,7 +3,8 @@
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
-#include <glad/glad.h>
+
+#include "shader.h"
 #include "material.h"
 
 
@@ -26,7 +27,7 @@ public:
 	Mesh();
 	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Material*> &materials);
 
-	void draw(GLuint shaders_program);
+	void draw(Shader& shader);
 
 private:
 	//Mesh data

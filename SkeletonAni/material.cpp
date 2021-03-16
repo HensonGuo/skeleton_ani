@@ -68,7 +68,7 @@ GLuint Material::loadImage(const char* imagePath)
 	return textureID;
 }
 
-void Material::draw(GLuint shaders_program)
+void Material::draw(Shader& shader)
 {
 	int diffuseIndex = 1;
 	int specularIndex = 1;
@@ -87,7 +87,7 @@ void Material::draw(GLuint shaders_program)
 		}
 
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
-		glUniform1i(glGetUniformLocation(shaders_program, ("material." + name + number).c_str()), i);
+		glUniform1i(glGetUniformLocation(shader.ID, ("material." + name + number).c_str()), i);
 	}
 }
 

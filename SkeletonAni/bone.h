@@ -2,27 +2,41 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <assimp/scene.h>
+
+#include "utils.h"
 
 
 using namespace std;
 using namespace glm;
 
-// ¹Ç÷À
-struct Bone {
-	int id = 0;
-	string name = "";
-	mat4 offset = glm::mat4(1.0f);
-	vector<Bone> children = {};
+struct Keyframe {
+	vec3 translationV;
+	vec3 scalingV;
+	aiQuaternion quatV;
+	float timeInTicks;
+
+	Keyframe();
+	Keyframe(vec3 translationV, vec3 scalingV, aiQuaternion quatV, float timeInTicks);
+	Keyframe& operator=(const Keyframe& k);
 };
 
-// ¹Ç÷À±ä»»
-struct BoneTransformTrack {
-	vector<float> positionTimestamps = {};
-	vector<float> rotationTimestamps = {};
-	vector<float> scaleTimestamps = {};
 
-	vector<glm::vec3> positions = {};
-	vector<glm::quat> rotations = {};
-	vector<glm::vec3> scales = {};
+// ¹Ç÷À
+class Bone {
+public:
+	int id = 0;
+	string name = "";
+	Bone* parent;
+	vector<Bone*> children = {};
+	glm::mat4 invBindPoseM;
+	glm::mat4 localAnimationM;
+	glm::mat4 globalAnimationM;
+
+	vector<Keyframe*> keyframes;
+	glm::mat4 getCurrentTransform(float ticksElapsed);
 };

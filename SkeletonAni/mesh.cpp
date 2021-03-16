@@ -12,11 +12,11 @@ Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Material*> &m
 	this->SetupMesh();
 }
 
-void Mesh::draw(GLuint shaderID)
+void Mesh::draw(Shader& shader)
 {
 	//²ÄÖÊ
 	for (int i = 0; i < materials.size(); i++) {
-		this->materials[i]->draw(shaderID);
+		this->materials[i]->draw(shader);
 	}
 	//¶¥µã
 	glBindVertexArray(VAO);
@@ -42,7 +42,7 @@ void Mesh::SetupMesh()
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, normal));
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, uv));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, texCoords));
 	glEnableVertexAttribArray(3);
 	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, boneIds));
 	glEnableVertexAttribArray(4);
