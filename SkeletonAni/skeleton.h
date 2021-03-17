@@ -21,7 +21,7 @@ public:
 	float startTime = -1.0f;
 	float durationInTicks;
 	float ticksPerSecond;
-	bool animationActive = false;
+	bool animationActive = true;
 
 	Skeleton();
 	void readBones(aiMesh* mesh, aiNode* node);
@@ -30,6 +30,6 @@ public:
 	void runAnimation();
 private:
 	Bone* createBoneHierarchy(aiNode* node);
-	void setFinalJointTransforms();
+	void setFinalBoneTransforms();
 	void generateGlobalAnimationMatrices(Bone* bone);
 };

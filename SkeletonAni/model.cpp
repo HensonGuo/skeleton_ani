@@ -76,10 +76,6 @@ void Model::readVertices(aiMesh* aimesh)
 			vec.y = aimesh->mTextureCoords[0][i].y;
 		}
 		vertex.texCoords = vec;
-
-		vertex.boneIds = ivec4(0);
-		vertex.boneWeights = vec4(0.0f);
-
 		vertices.push_back(vertex);
 	}
 }
@@ -106,55 +102,55 @@ void Model::setVerticesWeights(aiMesh* aimesh)
 		uint boneId = skeleton->boneName2Index.at(bone->mName.C_Str());
 		//循环每个顶点
 		for (uint j = 0; j < bone->mNumWeights; j++) {
-			uint id = bone->mWeights[j].mVertexId;
-			float weight = bone->mWeights[j].mWeight;
-			boneCounts[id]++;
-			switch (boneCounts[id]) {
-			case 1:
-				vertices[id].boneIds.x = i;
-				vertices[id].boneWeights.x = weight;
-				break;
-			case 2:
-				vertices[id].boneIds.y = i;
-				vertices[id].boneWeights.y = weight;
-				break;
-			case 3:
-				vertices[id].boneIds.z = i;
-				vertices[id].boneWeights.z = weight;
-				break;
-			case 4:
-				vertices[id].boneIds.w = i;
-				vertices[id].boneWeights.w = weight;
-				break;
+// 			uint id = bone->mWeights[j].mVertexId;
+// 			float weight = bone->mWeights[j].mWeight;
+// 			boneCounts[id]++;
+// 			switch (boneCounts[id]) {
+// 			case 1:
+// 				vertices[id].boneIds.x = i;
+// 				vertices[id].boneWeights.x = weight;
+// 				break;
+// 			case 2:
+// 				vertices[id].boneIds.y = i;
+// 				vertices[id].boneWeights.y = weight;
+// 				break;
+// 			case 3:
+// 				vertices[id].boneIds.z = i;
+// 				vertices[id].boneWeights.z = weight;
+// 				break;
+// 			case 4:
+// 				vertices[id].boneIds.w = i;
+// 				vertices[id].boneWeights.w = weight;
+// 				break;
 
-// 			aiVertexWeight var = bone->mWeights[j];
-// 			uint index = indices[var.mVertexId];
-// 			Vertex* vertex = &vertices[index];
-// 			float weight = var.mWeight;
-// 
-// 			bool finded = false;
-// 			for (unsigned int k = 0; k < 4; k++)
-// 			{
-// 				if (vertex->boneWeights[k] < 0.0f)
-// 				{
-// 					vertex->boneWeights[k] = weight;
-// 					vertex->boneIds[k] = boneId;
-// 					finded = true;
-// 					break;
-// 				}
-// 			}
-// 			if (finded)
-// 				continue;
-// 
-// 			// 如果顶点受4个以上关节的影响，则保持较大值的顶点
-// 			for (unsigned int k = 0; k < 4; k++)
-// 			{
-// 				if (weight > vertex->boneWeights[k])
-// 				{
-// 					vertex->boneWeights[k] = weight;
-// 					vertex->boneIds[k] = boneId;
-// 					break;
-// 				}
+			aiVertexWeight var = bone->mWeights[j];
+			uint index = indices[var.mVertexId];
+			Vertex* vertex = &vertices[index];
+			float weight = var.mWeight;
+
+			bool finded = false;
+			for (unsigned int k = 0; k < 4; k++)
+			{
+				if (vertex->boneWeights[k] < 0.0f)
+				{
+					vertex->boneWeights[k] = weight;
+					vertex->boneIds[k] = boneId;
+					finded = true;
+					break;
+				}
+			}
+			if (finded)
+				continue;
+
+			// 如果顶点受4个以上关节的影响，则保持较大值的顶点
+			for (unsigned int k = 0; k < 4; k++)
+			{
+				if (weight > vertex->boneWeights[k])
+				{
+					vertex->boneWeights[k] = weight;
+					vertex->boneIds[k] = boneId;
+					break;
+				}
  			}
 		}
 	}

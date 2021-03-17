@@ -88,7 +88,7 @@ void Skeleton::runAnimation()
 	generateGlobalAnimationMatrices(rootBone);
 
 	boneTransforms.resize(bones.size());
-	setFinalJointTransforms();
+	setFinalBoneTransforms();
 }
 
 Bone* Skeleton::createBoneHierarchy(aiNode* node)
@@ -142,7 +142,7 @@ Bone* Skeleton::createBoneHierarchy(aiNode* node)
 	}
 }
 
-void Skeleton::setFinalJointTransforms()
+void Skeleton::setFinalBoneTransforms()
 {
 	for (unsigned int i = 0; i < bones.size(); i++)
 	{

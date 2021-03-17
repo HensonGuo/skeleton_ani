@@ -7,16 +7,13 @@
 typedef unsigned int uint;
 typedef unsigned char byte;
 
-inline glm::mat4 assimpToGlmMatrix(aiMatrix4x4 mat) {
-	glm::mat4 m;
-	for (int y = 0; y < 4; y++)
-	{
-		for (int x = 0; x < 4; x++)
-		{
-			m[x][y] = mat[y][x];
-		}
-	}
-	return m;
+inline glm::mat4 assimpToGlmMatrix(aiMatrix4x4 matrix) {
+	glm::vec4 l1(matrix.a1, matrix.a2, matrix.a3, matrix.a4);
+	glm::vec4 l2(matrix.b1, matrix.b2, matrix.b3, matrix.b4);
+	glm::vec4 l3(matrix.c1, matrix.c2, matrix.c3, matrix.c4);
+	glm::vec4 l4(matrix.d1, matrix.d2, matrix.d3, matrix.d4);
+
+	return glm::mat4(l1, l2, l3, l4);
 }
 
 inline glm::vec3 assimpToGlmVec3(aiVector3D vec) {
