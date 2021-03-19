@@ -137,24 +137,24 @@ void Model::readSkeleton(const aiScene* scene, aiMesh* mesh, aiNode* node)
 	skeleton->readBones(mesh, node);
 	if (scene->HasAnimations() == false)
 		return;
-	//???????
+	//加载第一个动画
 	aiAnimation* ani = scene->mAnimations[0];
 	skeleton->readAnimation(ani);
 }
 
 void Model::readMaterial(aiMaterial* material)
 {
-	//?????
+	//漫反射贴图
 	Material* diffuseMaterial = new Material(material, aiTextureType_DIFFUSE, "diffuse", directory);
 	materials.push_back(diffuseMaterial);
-	//????
+	//高光贴图
 	Material* specularMaterial = new Material(material, aiTextureType_DIFFUSE, "specular", directory);
 	materials.push_back(specularMaterial);
 }
 
 void Model::normalizeBonesWeight()
 {
-	//??????,????????1
+	//将权重标准化，使所有权重总和为1
 	for (int i = 0; i < vertices.size(); i++) {
 		vec4& boneWeights = vertices[i].boneWeights;
 		float totalWeight = boneWeights.x + boneWeights.y + boneWeights.z + boneWeights.w;

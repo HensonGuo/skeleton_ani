@@ -16,7 +16,7 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 5.0f, 30.0f));
 float lastX = windowWidth / 2.0f;
 float lastY = windowHeight / 2.0f;
 bool firstMouse = true;
@@ -24,6 +24,8 @@ bool firstMouse = true;
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 
+float xRotation;
+float yRotation;
 
 /*
 骨骼动画 demo
@@ -60,20 +62,10 @@ int main(int argc, char ** argv) {
 	Model model("./../resources/model.dae");
 	model.playAnimation(true);
 
-
-	glm::mat4 projectionMatrix = glm::perspective(75.0f, (float)windowWidth / windowHeight, 0.01f, 100.0f);
-
-	glm::mat4 viewMatrix = glm::lookAt(glm::vec3(0.0f, 0.2f, -5.0f)
-		, glm::vec3(0.0f, .0f, 0.0f),
-		glm::vec3(0, 1, 0));
-	glm::mat4 viewProjectionMatrix = projectionMatrix * viewMatrix;
-
-	glm::mat4 modelMatrix(1.0f);
-	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
-	modelMatrix = glm::scale(modelMatrix, glm::vec3(.2f, .2f, .2f));
-
-
 	while (!glfwWindowShouldClose(window)) {
+		glClearColor(1.0, 1.0, 1.0, 0.0);
+		glClearDepth(1.0);
+		glPointSize(5);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// 帧时间差
@@ -85,10 +77,16 @@ int main(int argc, char ** argv) {
 		processInput(window);
 
 		shader.use();
-		glm::mat4 view = camera.GetViewMatrix();
-		shader.setMat4("model_matrix", view);
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
-		shader.setMat4("view_projection_matrix", projection);
+		
+		
+		glm::mat4 modelTrans = glm::mat4(1.0);
+		modelTrans = glm::rotate(modelTrans, glm::radians(yRotation), glm::vec3(0.0, 1.0, 0.0));
+		modelTrans = glm::rotate(modelTrans, glm::radians(xRotation), glm::vec3(1.0, 0.0, 0.0));
+		shader.setMat4("model", modelTrans);
+		glm::mat4 viewTrans = camera.GetViewMatrix();
+		shader.setMat4("view", viewTrans);
+		glm::mat4 projectionTrans = glm::perspective(glm::radians(camera.Zoom), (float)windowWidth / (float)windowHeight, 0.1f, 200.0f);
+		shader.setMat4("projection", projectionTrans);
 
 		model.draw(shader);
 
@@ -137,7 +135,19 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	camera.ProcessMouseMovement(xoffset, yoffset);
+	xRotation = ypos - windowHeight/2;
+	yRotation = xpos - windowWidth/2;
+	if (xRotation > 180)
+		xRotation = 180;
+	else if (xRotation < -180)
+		xRotation = -180;
+
+	if (yRotation > 90)
+		yRotation = 90;
+	else if (yRotation < -90)
+		yRotation = -90;
+
+	//camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

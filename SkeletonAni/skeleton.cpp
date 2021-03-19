@@ -70,8 +70,7 @@ void Skeleton::draw(Shader& shader)
 		runAnimation();
 
 	glm::mat4* ptr = boneTransforms.data();
-	shader.setMat4("bone_transforms", 16, boneTransforms[0]);
-	//glUniformMatrix4fv(glGetUniformLocation(shader.ID, "bone_transforms"), 20, GL_FALSE, reinterpret_cast<GLfloat*>(&ptr[0]));
+	shader.setMat4("bone_transforms", bones.size(), boneTransforms[0]);
 }
 
 void Skeleton::runAnimation()
@@ -156,7 +155,7 @@ void Skeleton::setFinalBoneTransforms()
 
 void Skeleton::generateGlobalAnimationMatrices(Bone* bone)
 {
-	//the root joint's global animation matrix is its local animation matrix
+	//根关节的全局动画矩阵是其局部动画矩阵
 	if (bone->parent == nullptr)
 		bone->globalAnimationM = bone->localAnimationM;
 	else
