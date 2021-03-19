@@ -29,6 +29,7 @@ public:
 	Model(const string& path);
 	void loadModel(const string& path);
 	void draw(Shader &shader);
+	void playAnimation(bool active);
 
 private:
 	void readVertices(aiMesh* aimesh);
@@ -45,6 +46,5 @@ private:
 	vector<Material*> materials = {};
 	vector<Vertex> vertices = {};
 	vector<uint> indices = {};
-	uint boneCount = 0;
 	Skeleton* skeleton;
 };

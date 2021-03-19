@@ -58,6 +58,7 @@ int main(int argc, char ** argv) {
 
 	Shader shader("./../resources/shaders/vertext.txt", "./../resources/shaders/fragment.txt");
 	Model model("./../resources/model.dae");
+	model.playAnimation(true);
 
 
 	glm::mat4 projectionMatrix = glm::perspective(75.0f, (float)windowWidth / windowHeight, 0.01f, 100.0f);

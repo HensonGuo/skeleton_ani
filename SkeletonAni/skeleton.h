@@ -21,7 +21,7 @@ public:
 	float startTime = -1.0f;
 	float durationInTicks;
 	float ticksPerSecond;
-	bool animationActive = true;
+	bool animationActive = false;
 
 	Skeleton();
 	void readBones(aiMesh* mesh, aiNode* node);

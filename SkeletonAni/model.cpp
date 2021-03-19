@@ -41,7 +41,7 @@ void Model::loadModel(const string& path)
 	}
 
 	setVerticesWeights(aimesh);
-	//normalizeBonesWeight();
+	normalizeBonesWeight();
 	mesh = Mesh(vertices, indices, materials);
 }
 
@@ -49,6 +49,11 @@ void Model::draw(Shader& shader)
 {
 	mesh.draw(shader);
 	skeleton->draw(shader);
+}
+
+void Model::playAnimation(bool active)
+{
+	this->skeleton->animationActive = active;
 }
 
 
@@ -94,7 +99,7 @@ void Model::setVerticesWeights(aiMesh* aimesh)
 {
 	vector<uint> boneCounts;
 	boneCounts.resize(vertices.size(), 0);
-	boneCount = aimesh->mNumBones;
+	uint boneCount = aimesh->mNumBones;
 
 	//循环每个骨骼
 	for (uint i = 0; i < boneCount; i++) {
@@ -102,55 +107,26 @@ void Model::setVerticesWeights(aiMesh* aimesh)
 		uint boneId = skeleton->boneName2Index.at(bone->mName.C_Str());
 		//循环每个顶点
 		for (uint j = 0; j < bone->mNumWeights; j++) {
-// 			uint id = bone->mWeights[j].mVertexId;
-// 			float weight = bone->mWeights[j].mWeight;
-// 			boneCounts[id]++;
-// 			switch (boneCounts[id]) {
-// 			case 1:
-// 				vertices[id].boneIds.x = i;
-// 				vertices[id].boneWeights.x = weight;
-// 				break;
-// 			case 2:
-// 				vertices[id].boneIds.y = i;
-// 				vertices[id].boneWeights.y = weight;
-// 				break;
-// 			case 3:
-// 				vertices[id].boneIds.z = i;
-// 				vertices[id].boneWeights.z = weight;
-// 				break;
-// 			case 4:
-// 				vertices[id].boneIds.w = i;
-// 				vertices[id].boneWeights.w = weight;
-// 				break;
-
-			aiVertexWeight var = bone->mWeights[j];
-			uint index = indices[var.mVertexId];
-			Vertex* vertex = &vertices[index];
-			float weight = var.mWeight;
-
-			bool finded = false;
-			for (unsigned int k = 0; k < 4; k++)
-			{
-				if (vertex->boneWeights[k] < 0.0f)
-				{
-					vertex->boneWeights[k] = weight;
-					vertex->boneIds[k] = boneId;
-					finded = true;
-					break;
-				}
-			}
-			if (finded)
-				continue;
-
-			// 如果顶点受4个以上关节的影响，则保持较大值的顶点
-			for (unsigned int k = 0; k < 4; k++)
-			{
-				if (weight > vertex->boneWeights[k])
-				{
-					vertex->boneWeights[k] = weight;
-					vertex->boneIds[k] = boneId;
-					break;
-				}
+			uint id = bone->mWeights[j].mVertexId;
+			float weight = bone->mWeights[j].mWeight;
+			boneCounts[id]++;
+			switch (boneCounts[id]) {
+			case 1:
+				vertices[id].boneIds.x = i;
+				vertices[id].boneWeights.x = weight;
+				break;
+			case 2:
+				vertices[id].boneIds.y = i;
+				vertices[id].boneWeights.y = weight;
+				break;
+			case 3:
+				vertices[id].boneIds.z = i;
+				vertices[id].boneWeights.z = weight;
+				break;
+			case 4:
+				vertices[id].boneIds.w = i;
+				vertices[id].boneWeights.w = weight;
+				break;
  			}
 		}
 	}
@@ -161,24 +137,24 @@ void Model::readSkeleton(const aiScene* scene, aiMesh* mesh, aiNode* node)
 	skeleton->readBones(mesh, node);
 	if (scene->HasAnimations() == false)
 		return;
-	//加载第一个动画
+	//???????
 	aiAnimation* ani = scene->mAnimations[0];
 	skeleton->readAnimation(ani);
 }
 
 void Model::readMaterial(aiMaterial* material)
 {
-	//漫反射贴图
+	//?????
 	Material* diffuseMaterial = new Material(material, aiTextureType_DIFFUSE, "diffuse", directory);
 	materials.push_back(diffuseMaterial);
-	//高光贴图
+	//????
 	Material* specularMaterial = new Material(material, aiTextureType_DIFFUSE, "specular", directory);
 	materials.push_back(specularMaterial);
 }
 
 void Model::normalizeBonesWeight()
 {
-	//将权重标准化，使所有权重总和为1
+	//??????,????????1
 	for (int i = 0; i < vertices.size(); i++) {
 		vec4& boneWeights = vertices[i].boneWeights;
 		float totalWeight = boneWeights.x + boneWeights.y + boneWeights.z + boneWeights.w;
