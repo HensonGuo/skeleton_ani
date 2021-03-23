@@ -1,5 +1,6 @@
 #include "skeleton.h"
 
+
 Skeleton::Skeleton()
 {
 }
@@ -24,6 +25,7 @@ void Skeleton::readBones(aiMesh* mesh, aiNode* node)
 		bones.push_back(bone);
 	}
 	rootBone = createBoneHierarchy(node);
+	createBonesVertices(rootBone, aiMatrix4x4());
 }
 
 void Skeleton::readAnimation(aiAnimation* animation)
@@ -53,6 +55,11 @@ void Skeleton::readAnimation(aiAnimation* animation)
 }
 
 void Skeleton::draw(Shader& shader)
+{
+	skeletonLine.draw(shader);
+}
+
+void Skeleton::changePose(Shader& shader)
 {
 	boneTransforms.resize(bones.size());
 	if (this->startTime < 0.0f)
@@ -96,11 +103,11 @@ Bone* Skeleton::createBoneHierarchy(aiNode* node)
 
 	if (boneName2Index.count(nodeName) > 0)
 	{
-		//add node to hierarchy
 		unsigned int id = boneName2Index.at(nodeName);
-		Bone* bone = bones[id];;
+		Bone* bone = bones[id];
+		bone->mNode = node;
 
-		//set the parent for the joint
+		//set parent
 		if (node->mParent == NULL)
 			bone->parent = nullptr;
 		else
@@ -170,4 +177,36 @@ void Skeleton::generateGlobalAnimationMatrices(Bone* bone)
 	{
 		generateGlobalAnimationMatrices(bone->children[i]);
 	}
+}
+
+void Skeleton::createBonesVertices(Bone* bone, aiMatrix4x4 currentTransform)
+{
+	aiMatrix4x4 m = bone->mNode->mTransformation;
+	currentTransform = currentTransform * m;
+	bone->mTempTransform = currentTransform;
+
+	if (bone->parent) {
+		float node_x = currentTransform.a4;
+		float node_y = currentTransform.b4;
+		float node_z = currentTransform.c4;
+
+		vec3 start = vec3(node_x, node_y, node_z);
+
+		const Bone* parent = bone->parent;
+		aiMatrix4x4 parentTransform = parent->mTempTransform;
+
+		float parent_x = parentTransform.a4;
+		float parent_y = parentTransform.b4;
+		float parent_z = parentTransform.c4;
+
+		vec3 end = vec3(parent_x, parent_y, parent_z);
+
+		skeletonLine.addLine(start, end, vec4(0, 1, 0, 1));
+	}
+
+	for (auto it = bone->children.begin(); it != bone->children.end(); ++it) {
+
+		createBonesVertices(*it, currentTransform);
+	}
+	skeletonLine.setUp();
 }

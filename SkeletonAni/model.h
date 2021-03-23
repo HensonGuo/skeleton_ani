@@ -22,13 +22,19 @@
 using namespace std;
 using namespace glm;
 
+enum DrawType {
+	DRAW_ENTITY,
+	DRAW_SKELETON,
+	DRAW_GRID,
+};
+
 
 class Model
 {
 public:
 	Model(const string& path);
 	void loadModel(const string& path);
-	void draw(Shader &shader);
+	void draw(Shader &shader, DrawType drawType);
 	void playAnimation(bool active);
 
 private:
@@ -41,6 +47,7 @@ private:
 	void showNodeName(aiNode* node);
 	
 	string directory;
+	bool onlyDrawSkeleton;
 
 	Mesh mesh;	
 	vector<Material*> materials = {};

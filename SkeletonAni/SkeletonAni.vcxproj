@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClInclude Include="bone.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="line.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="shader.h" />
@@ -159,12 +160,14 @@
   <ItemGroup>
     <ClCompile Include="bone.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="line.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="material.cpp" />
     <ClCompile Include="skeleton.cpp" />
+    <ClCompile Include="test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

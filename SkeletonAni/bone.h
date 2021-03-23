@@ -36,6 +36,8 @@ public:
 	glm::mat4 invBindPoseM;
 	glm::mat4 localAnimationM;
 	glm::mat4 globalAnimationM;
+	aiNode* mNode;
+	aiMatrix4x4 mTempTransform;
 
 	vector<Keyframe*> keyframes;
 	glm::mat4 getCurrentTransform(float ticksElapsed);

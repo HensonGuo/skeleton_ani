@@ -3,6 +3,7 @@
 #include "bone.h"
 #include "utils.h"
 #include "shader.h"
+#include "line.h"
 
 #include <map>
 #include <GLFW/glfw3.h>
@@ -27,9 +28,13 @@ public:
 	void readBones(aiMesh* mesh, aiNode* node);
 	void readAnimation(aiAnimation* animation);
 	void draw(Shader& shader);
+	void changePose(Shader& shader);
 	void runAnimation();
 private:
 	Bone* createBoneHierarchy(aiNode* node);
 	void setFinalBoneTransforms();
 	void generateGlobalAnimationMatrices(Bone* bone);
+
+	Line skeletonLine;
+	void createBonesVertices(Bone* bone, aiMatrix4x4 currentTransform);
 };

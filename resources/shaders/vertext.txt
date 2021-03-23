@@ -8,7 +8,6 @@ layout (location = 4) in vec4 boneWeights;
 out vec2 tex_cord;
 out vec3 v_normal;
 out vec3 v_pos;
-out vec4 bw;
 
 uniform mat4 bone_transforms[50];
 uniform mat4 model;
@@ -17,10 +16,6 @@ uniform mat4 projection;
 
 void main()
 {
-	bw = vec4(0);
-	if(int(boneIds.x) == 1)
-	bw.z = boneIds.x;
-	//boneWeights = normalize(boneWeights);
 	vec4 newPosition = vec4(0.0f);
 	vec4 newNormal = vec4(0.0f);
 
@@ -28,9 +23,9 @@ void main()
 	{
 		if(boneWeights[i] > 0.0f)
 		{
-			mat4 jointM = bone_transforms[boneIds[i]];
-			newPosition += boneWeights[i] * jointM * vec4(position, 1.0f);
-			newNormal += boneWeights[i] * jointM * vec4(normal, 1.0f);
+			mat4 boneM = bone_transforms[boneIds[i]];
+			newPosition += boneWeights[i] * boneM * vec4(position, 1.0f);
+			newNormal += boneWeights[i] * boneM * vec4(normal, 1.0f);
 		}
 	}
 	

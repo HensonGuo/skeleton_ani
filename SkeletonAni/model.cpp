@@ -45,10 +45,18 @@ void Model::loadModel(const string& path)
 	mesh = Mesh(vertices, indices, materials);
 }
 
-void Model::draw(Shader& shader)
+void Model::draw(Shader& shader, DrawType drawType)
 {
-	mesh.draw(shader);
-	skeleton->draw(shader);
+	if (drawType == DRAW_ENTITY)
+	{
+		skeleton->changePose(shader);
+		mesh.draw(shader);
+	}
+	else if (drawType == DRAW_SKELETON)
+	{
+		skeleton->changePose(shader);
+		skeleton->draw(shader);
+	}
 }
 
 void Model::playAnimation(bool active)

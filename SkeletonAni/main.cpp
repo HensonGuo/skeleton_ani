@@ -24,7 +24,7 @@ bool firstMouse = true;
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 
-float xRotation;
+float xRotation = -90;
 float yRotation;
 
 /*
@@ -32,10 +32,11 @@ float yRotation;
 */
 int main(int argc, char ** argv) {
 
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);//主版本号
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);//次版本号
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+ 	glfwInit();
+	//设置了版本号无法绘制线条，暂时不设置
+	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);//主版本号
+	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);//次版本号
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "SkeletonAni", NULL, NULL);
 	if (window == NULL)
@@ -58,6 +59,7 @@ int main(int argc, char ** argv) {
 	//开启深度测试
 	glEnable(GL_DEPTH_TEST);
 
+	Shader lineShader("./../resources/shaders/lineV.txt", "./../resources/shaders/lineF.txt");
 	Shader shader("./../resources/shaders/vertext.txt", "./../resources/shaders/fragment.txt");
 	Model model("./../resources/model.dae");
 	model.playAnimation(true);
@@ -77,18 +79,24 @@ int main(int argc, char ** argv) {
 		processInput(window);
 
 		shader.use();
+		lineShader.use();
 		
 		
 		glm::mat4 modelTrans = glm::mat4(1.0);
 		modelTrans = glm::rotate(modelTrans, glm::radians(yRotation), glm::vec3(0.0, 1.0, 0.0));
 		modelTrans = glm::rotate(modelTrans, glm::radians(xRotation), glm::vec3(1.0, 0.0, 0.0));
 		shader.setMat4("model", modelTrans);
+		lineShader.setMat4("model", modelTrans);
 		glm::mat4 viewTrans = camera.GetViewMatrix();
 		shader.setMat4("view", viewTrans);
+		lineShader.setMat4("view", viewTrans);
 		glm::mat4 projectionTrans = glm::perspective(glm::radians(camera.Zoom), (float)windowWidth / (float)windowHeight, 0.1f, 200.0f);
 		shader.setMat4("projection", projectionTrans);
+		lineShader.setMat4("projection", projectionTrans);
 
-		model.draw(shader);
+		//model.draw(shader, DRAW_ENTITY);
+
+		model.draw(lineShader, DRAW_SKELETON);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -135,17 +143,17 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	xRotation = ypos - windowHeight/2;
-	yRotation = xpos - windowWidth/2;
-	if (xRotation > 180)
-		xRotation = 180;
-	else if (xRotation < -180)
-		xRotation = -180;
+// 	xRotation = ypos - windowHeight/2;
+// 	if (xRotation > 90)
+// 		xRotation = 90;
+// 	else if (xRotation < -90)
+// 		xRotation = -90;
 
-	if (yRotation > 90)
-		yRotation = 90;
-	else if (yRotation < -90)
-		yRotation = -90;
+	yRotation = xpos - windowWidth / 2;
+	if (yRotation > 180)
+		yRotation = 180;
+	else if (yRotation < -180)
+		yRotation = -180;
 
 	//camera.ProcessMouseMovement(xoffset, yoffset);
 }
