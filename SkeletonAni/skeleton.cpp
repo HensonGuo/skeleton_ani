@@ -105,7 +105,7 @@ Bone* Skeleton::createBoneHierarchy(aiNode* node)
 	{
 		unsigned int id = boneName2Index.at(nodeName);
 		Bone* bone = bones[id];
-		bone->mNode = node;
+		bone->mTransform = node->mTransformation;
 
 		//set parent
 		if (node->mParent == NULL)
@@ -181,7 +181,7 @@ void Skeleton::generateGlobalAnimationMatrices(Bone* bone)
 
 void Skeleton::createBonesVertices(Bone* bone, aiMatrix4x4 currentTransform)
 {
-	aiMatrix4x4 m = bone->mNode->mTransformation;
+	aiMatrix4x4 m = bone->mTransform;
 	currentTransform = currentTransform * m;
 	bone->mTempTransform = currentTransform;
 
