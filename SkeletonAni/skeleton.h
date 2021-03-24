@@ -3,7 +3,7 @@
 #include "bone.h"
 #include "utils.h"
 #include "shader.h"
-#include "line.h"
+#include "skeleton_drawer.h"
 
 #include <map>
 #include <GLFW/glfw3.h>
@@ -35,6 +35,6 @@ private:
 	void setFinalBoneTransforms();
 	void generateGlobalAnimationMatrices(Bone* bone);
 
-	Line skeletonLine;
+	SkeletonDrawer skeletonLine;
 	void createBonesVertices(Bone* bone, aiMatrix4x4 currentTransform);
 };

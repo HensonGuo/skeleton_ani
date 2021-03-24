@@ -1,23 +1,25 @@
-#include "line.h"
+#include "skeleton_drawer.h"
 #include <iostream>
 
-Line::Line()
+SkeletonDrawer::SkeletonDrawer()
 {
 }
 
-void Line::addLine(vec3 start, vec3 end, vec4 color)
+void SkeletonDrawer::addBoneLine(vec3 start, uint startBoneId, vec3 end, uint endBoneId, vec4 color)
 {
 	Vertex startVertex;
 	startVertex.position = start;
+	startVertex.boneId = startBoneId;
 	startVertex.color = color;
 	vertices.push_back(startVertex);
 	Vertex endVertex;
 	endVertex.position = end;
+	endVertex.boneId = endBoneId;
 	endVertex.color = color;
 	vertices.push_back(endVertex);
 }
 
-void Line::draw(Shader& shader)
+void SkeletonDrawer::draw(Shader& shader)
 {
 	glBindVertexArray(VAO);
 	glEnable(GL_BLEND);
@@ -26,7 +28,7 @@ void Line::draw(Shader& shader)
 	glDisable(GL_BLEND);
 }
 
-void Line::setUp()
+void SkeletonDrawer::setUp()
 {
 	glLineWidth(6);
 	glGenVertexArrays(1, &VAO);
@@ -39,5 +41,7 @@ void Line::setUp()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, color));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, boneId));
 	glBindVertexArray(0);
 }

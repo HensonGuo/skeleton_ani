@@ -7,16 +7,17 @@
 
 using namespace glm;
 
-class Line {
+class SkeletonDrawer {
 public:
-	Line();
-	void addLine(vec3 start, vec3 end, vec4 color);
+	SkeletonDrawer();
+	void addBoneLine(vec3 start, uint startBoneId, vec3 end, uint endBoneId, vec4 color);
 	void draw(Shader& shader);
 	void setUp();
-private:
+//private:
 	struct Vertex {
 		vec3 position;
 		vec4 color;
+		uint boneId;
 	};
 	GLuint VAO;
 	GLuint VBO;

@@ -42,7 +42,7 @@
     <ClInclude Include="camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="line.h">
+    <ClInclude Include="skeleton_drawer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -71,10 +71,10 @@
     <ClCompile Include="bone.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="line.cpp">
+    <ClCompile Include="test.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="test.cpp">
+    <ClCompile Include="skeleton_drawer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

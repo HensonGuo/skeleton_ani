@@ -7,6 +7,7 @@ Skeleton::Skeleton()
 
 void Skeleton::readBones(aiMesh* mesh, aiNode* node)
 {
+	//根节点矩阵逆转换作为全局逆矩阵
 	glm::mat4 transform = assimpToGlmMatrix(node->mTransformation);
 	globalInverseTransform = glm::inverse(transform);
 
@@ -26,6 +27,7 @@ void Skeleton::readBones(aiMesh* mesh, aiNode* node)
 	}
 	rootBone = createBoneHierarchy(node);
 	createBonesVertices(rootBone, aiMatrix4x4());
+	skeletonLine.setUp();
 }
 
 void Skeleton::readAnimation(aiAnimation* animation)
@@ -201,12 +203,14 @@ void Skeleton::createBonesVertices(Bone* bone, aiMatrix4x4 currentTransform)
 
 		vec3 end = vec3(parent_x, parent_y, parent_z);
 
-		skeletonLine.addLine(start, end, vec4(0, 1, 0, 1));
+		uint startBoneId = boneName2Index.at(bone->name);
+		uint endBoneId = boneName2Index.at(parent->name);
+
+		skeletonLine.addBoneLine(start, startBoneId, end, endBoneId, vec4(0, 1, 0, 1));
 	}
 
 	for (auto it = bone->children.begin(); it != bone->children.end(); ++it) {
 
 		createBonesVertices(*it, currentTransform);
 	}
-	skeletonLine.setUp();
 }
