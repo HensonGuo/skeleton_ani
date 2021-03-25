@@ -125,6 +125,9 @@ void Skeleton::calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, flo
 	glm::mat4 globalTransformation = parentTransform * nodeTransform;
 	boneTransforms[bone->id] = globalTransformation * bone->offset;
 
+	//不计算offset即是模型空间，*offset即转换到骨骼空间
+	boneTransforms[bone->id] = globalTransformation;
+
 	for (int i = 0; i < bone->children.size(); i++)
 		calculateBoneTransform(bone->children[i], globalTransformation, delta);
 }

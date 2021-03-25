@@ -84,12 +84,12 @@ int main(int argc, char ** argv) {
 		glm::mat4 viewTrans = camera.GetViewMatrix();
 		glm::mat4 projectionTrans = glm::perspective(glm::radians(camera.Zoom), (float)windowWidth / (float)windowHeight, 0.1f, 200.0f);
 
-		shader.use();
-		shader.setMat4("model", modelTrans);
-		shader.setMat4("view", viewTrans);
-		shader.setMat4("projection", projectionTrans);
-		model.draw(shader, DRAW_ENTITY);
-		shader.unuse();
+// 		shader.use();
+// 		shader.setMat4("model", modelTrans);
+// 		shader.setMat4("view", viewTrans);
+// 		shader.setMat4("projection", projectionTrans);
+// 		model.draw(shader, DRAW_ENTITY);
+// 		shader.unuse();
 
 		lineShader.use();
 		lineShader.setMat4("model", modelTrans);
