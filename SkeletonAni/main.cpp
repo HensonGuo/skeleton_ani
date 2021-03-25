@@ -25,7 +25,7 @@ float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 
 float xRotation = -90;
-float yRotation = -45;
+float yRotation = 0;
 
 /*
 骨骼动画 demo
@@ -91,12 +91,12 @@ int main(int argc, char ** argv) {
 		model.draw(shader, DRAW_ENTITY);
 		shader.unuse();
 
-// 		lineShader.use();
-// 		lineShader.setMat4("model", modelTrans);
-// 		lineShader.setMat4("view", viewTrans);
-// 		lineShader.setMat4("projection", projectionTrans);
-// 		model.draw(lineShader, DRAW_SKELETON);
-// 		lineShader.unuse();
+		lineShader.use();
+		lineShader.setMat4("model", modelTrans);
+		lineShader.setMat4("view", viewTrans);
+		lineShader.setMat4("projection", projectionTrans);
+		model.draw(lineShader, DRAW_SKELETON);
+		lineShader.unuse();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

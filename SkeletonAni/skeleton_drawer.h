@@ -13,6 +13,7 @@ public:
 	void addBoneLine(vec3 start, uint startBoneId, vec3 end, uint endBoneId, vec4 color);
 	void draw(Shader& shader);
 	void setUp();
+	void clear();
 //private:
 	struct Vertex {
 		vec3 position;

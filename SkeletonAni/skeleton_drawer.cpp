@@ -45,3 +45,8 @@ void SkeletonDrawer::setUp()
 	glVertexAttribPointer(2, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, boneId));
 	glBindVertexArray(0);
 }
+
+void SkeletonDrawer::clear()
+{
+	vertices.clear();
+}

@@ -30,6 +30,6 @@ private:
 	Bone* createBoneHierarchy(aiNode* node);
 	void calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, float delta);
 
-	SkeletonDrawer skeletonLine;
-	void createBonesVertices(Bone* bone, aiMatrix4x4 currentTransform);
+	SkeletonDrawer skeletonDrawer;
+	void updateSkeletonDrawer(Bone* bone, mat4 currentTransform);
 };
