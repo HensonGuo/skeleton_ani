@@ -142,12 +142,10 @@ void Model::setVerticesWeights(aiMesh* aimesh)
 
 void Model::readSkeleton(const aiScene* scene, aiMesh* mesh, aiNode* node)
 {
-	skeleton->readBones(mesh, node);
-	if (scene->HasAnimations() == false)
-		return;
-	//加载第一个动画
-	aiAnimation* ani = scene->mAnimations[0];
-	skeleton->readAnimation(ani);
+	aiAnimation* ani = nullptr;
+	if (scene->HasAnimations() == true)
+		ani = scene->mAnimations[0];
+	skeleton->readBones(mesh, node, ani);
 }
 
 void Model::readMaterial(aiMaterial* material)

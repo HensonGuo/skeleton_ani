@@ -1,68 +1,113 @@
 #include "bone.h"
 
-Keyframe::Keyframe()
+Bone::Bone(const std::string& name, int ID, const aiNodeAnim* channel)
+	:name(name),
+	id(ID),
+	localTransform(1.0f)
 {
-}
-
-Keyframe::Keyframe(vec3 translationV, vec3 scalingV, aiQuaternion quatV, float timeInTicks)
-{
-	this->translationV = translationV;
-	this->scalingV = scalingV;
-	this->quatV = quatV;
-	this->timeInTicks = timeInTicks;
-}
-
-Keyframe& Keyframe::operator=(const Keyframe& k)
-{
-	translationV = k.translationV;
-	scalingV = k.scalingV;
-	quatV = k.quatV;
-	timeInTicks = k.timeInTicks;
-	return *this;
-}
-
-glm::mat4 Bone::getCurrentTransform(float ticksElapsed)
-{
-	unsigned int index = 0;
-
-	for (index = 0; index < keyframes.size() - 1; index++)
+	if (!channel)
+		return;
+	numPositions = channel->mNumPositionKeys;
+	for (int positionIndex = 0; positionIndex < numPositions; ++positionIndex)
 	{
-		if (ticksElapsed <= keyframes[index + 1]->timeInTicks)
-		{
-			break;
-		}
+		aiVector3D aiPosition = channel->mPositionKeys[positionIndex].mValue;
+		float timeStamp = channel->mPositionKeys[positionIndex].mTime;
+		PositionKeyframe data;
+		data.position = assimpToGlmVec3(aiPosition);
+		data.timeStamp = timeStamp;
+		positions.push_back(data);
 	}
 
-	Keyframe* currFrame, * nextFrame;
-	currFrame = keyframes[index];
-	nextFrame = keyframes[fmod(index + 1, keyframes.size())];
+	numRotations = channel->mNumRotationKeys;
+	for (int rotationIndex = 0; rotationIndex < numRotations; ++rotationIndex)
+	{
+		aiQuaternion aiOrientation = channel->mRotationKeys[rotationIndex].mValue;
+		float timeStamp = channel->mRotationKeys[rotationIndex].mTime;
+		RotationKeyframe data;
+		data.orientation = assimpToGlmQuat(aiOrientation);
+		data.timeStamp = timeStamp;
+		rotations.push_back(data);
+	}
 
-	float deltaTime = abs(nextFrame->timeInTicks - currFrame->timeInTicks);
+	numScalings = channel->mNumScalingKeys;
+	for (int keyIndex = 0; keyIndex < numScalings; ++keyIndex)
+	{
+		aiVector3D scale = channel->mScalingKeys[keyIndex].mValue;
+		float timeStamp = channel->mScalingKeys[keyIndex].mTime;
+		ScaleKeyframe data;
+		data.scale = assimpToGlmVec3(scale);
+		data.timeStamp = timeStamp;
+		scales.push_back(data);
+	}
+}
 
-	float factor = (ticksElapsed - currFrame->timeInTicks) / deltaTime;		//between 0.0 and 1.0
+void Bone::update(float delta)
+{
+	int frameIndex = getKeyFrameIndex(delta);
+	float factor = getFactor(rotations[frameIndex].timeStamp,
+		rotations[frameIndex + 1].timeStamp, delta);
 
-	if (factor < 0.0f || factor > 1.0f)
-		std::cout << "Error! Factor should be in [0.0, 1.0]\n";
+	glm::mat4 translation = interpolatePosition(frameIndex, factor);
+	glm::mat4 rotation = interpolateRotation(frameIndex, factor);
+	glm::mat4 scale = interpolateScaling(frameIndex, factor);
+	localTransform = translation * rotation * scale;
+}
 
-	//translation
-	glm::vec3 deltaT = nextFrame->translationV - currFrame->translationV;
-	glm::vec3 newTranslationV = currFrame->translationV + factor * deltaT;
-	glm::mat4 translationM = glm::translate(glm::mat4(1.0f), newTranslationV);
+int Bone::getKeyFrameIndex(float delta)
+{
+	for (int index = 0; index < numPositions - 1; ++index)
+	{
+		if (delta < positions[index + 1].timeStamp)
+			return index;
+	}
+	assert(0);
+}
 
-	//rotation
-	aiQuaternion newQuat;
-	const aiQuaternion& currentQuat = currFrame->quatV;
-	const aiQuaternion& nextQuat = nextFrame->quatV;
-	aiQuaternion::Interpolate(newQuat, currentQuat, nextQuat, factor);
+float Bone::getFactor(float lastFrameStamp, float nextFrameStamp, float delta)
+{
+	float factor = 0.0f;
+	float midWayLength = delta - lastFrameStamp;
+	float framesDiff = nextFrameStamp - lastFrameStamp;
+	factor = midWayLength / framesDiff;
+	return factor;
+}
 
-	glm::quat newGLMQuat = assimpToGlmQuat(newQuat);
-	glm::mat4 rotationM = glm::toMat4(newGLMQuat);
+glm::mat4 Bone::interpolatePosition(int frameIndex, float factor)
+{
+	if (1 == numPositions)
+		return glm::translate(glm::mat4(1.0f), positions[0].position);
 
-	//scaling
-	glm::vec3 deltaS = nextFrame->scalingV - currFrame->scalingV;
-	glm::vec3 newScalingV = currFrame->scalingV + factor * deltaS;
-	glm::mat4 scalingM = glm::scale(glm::mat4(1.0f), newScalingV);
+	int p0Index = frameIndex;
+	int p1Index = p0Index + 1;
+	glm::vec3 finalPosition = glm::mix(positions[p0Index].position,
+		positions[p1Index].position
+		, factor);
+	return glm::translate(glm::mat4(1.0f), finalPosition);
+}
 
+glm::mat4 Bone::interpolateRotation(int frameIndex, float factor)
+{
+	if (1 == numRotations)
+	{
+		auto rotation = glm::normalize(rotations[0].orientation);
+		return glm::toMat4(rotation);
+	}
+	int p0Index = frameIndex;
+	int p1Index = p0Index + 1;
+	glm::quat finalRotation = glm::slerp(rotations[p0Index].orientation,
+		rotations[p1Index].orientation, factor);
+	finalRotation = glm::normalize(finalRotation);
+	return glm::toMat4(finalRotation);
+}
 
-	return translationM * rotationM * scalingM;
+glm::mat4 Bone::interpolateScaling(int frameIndex, float factor)
+{
+	if (1 == numScalings)
+		return glm::scale(glm::mat4(1.0f), scales[0].scale);
+
+	int p0Index = frameIndex;
+	int p1Index = p0Index + 1;
+	glm::vec3 finalScale = glm::mix(scales[p0Index].scale,
+		scales[p1Index].scale, factor);
+	return glm::scale(glm::mat4(1.0f), finalScale);
 }

@@ -17,23 +17,18 @@ public:
 	std::vector<glm::mat4> boneTransforms;
 	std::map<std::string, unsigned int> boneName2Index;
 
-	glm::mat4 globalInverseTransform;
-
 	float startTime = -1.0f;
 	float durationInTicks;
 	float ticksPerSecond;
-	bool animationActive = false;
+	bool animationActive = true;
 
 	Skeleton();
-	void readBones(aiMesh* mesh, aiNode* node);
-	void readAnimation(aiAnimation* animation);
+	void readBones(aiMesh* mesh, aiNode* node, aiAnimation* animation);
 	void draw(Shader& shader);
 	void changePose(Shader& shader);
-	void runAnimation();
 private:
 	Bone* createBoneHierarchy(aiNode* node);
-	void setFinalBoneTransforms();
-	void generateGlobalAnimationMatrices(Bone* bone);
+	void calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, float delta);
 
 	SkeletonDrawer skeletonLine;
 	void createBonesVertices(Bone* bone, aiMatrix4x4 currentTransform);

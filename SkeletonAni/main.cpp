@@ -25,7 +25,7 @@ float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 
 float xRotation = -90;
-float yRotation;
+float yRotation = -45;
 
 /*
 骨骼动画 demo
@@ -76,11 +76,7 @@ int main(int argc, char ** argv) {
 		lastFrame = currentFrame;
 
 		// 输入
-		processInput(window);
-
-		shader.use();
-		lineShader.use();
-		
+		processInput(window);		
 		
 		glm::mat4 modelTrans = glm::mat4(1.0);
 		modelTrans = glm::rotate(modelTrans, glm::radians(yRotation), glm::vec3(0.0, 1.0, 0.0));
@@ -94,9 +90,11 @@ int main(int argc, char ** argv) {
 		shader.setMat4("projection", projectionTrans);
 		lineShader.setMat4("projection", projectionTrans);
 
-		//model.draw(shader, DRAW_ENTITY);
+		shader.use();
+		model.draw(shader, DRAW_ENTITY);
 
-		model.draw(lineShader, DRAW_SKELETON);
+// 		lineShader.use();
+// 		model.draw(lineShader, DRAW_SKELETON);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

@@ -5,55 +5,28 @@ Skeleton::Skeleton()
 {
 }
 
-void Skeleton::readBones(aiMesh* mesh, aiNode* node)
+void Skeleton::readBones(aiMesh* mesh, aiNode* node, aiAnimation* animation)
 {
-	//根节点矩阵逆转换作为全局逆矩阵
-	glm::mat4 transform = assimpToGlmMatrix(node->mTransformation);
-	globalInverseTransform = glm::inverse(transform);
+	if (animation)
+	{
+		ticksPerSecond = (float)animation->mTicksPerSecond;
+		durationInTicks = (float)animation->mDuration;
+	}
 
 	for (unsigned int i = 0; i < mesh->mNumBones; i++)
 	{
-		Bone* bone = new Bone();
 		aiBone* boneData = mesh->mBones[i];
 		std::string name = boneData->mName.C_Str();
-
+		auto channel = animation->mChannels[i];
+		Bone* bone = new Bone(name, i, channel);
 		boneName2Index.insert(std::pair <std::string, unsigned int>(name, i));
-
-		bone->invBindPoseM = assimpToGlmMatrix(boneData->mOffsetMatrix);
-		bone->id = i;
-		bone->name = name;
-
+		bone->offset = assimpToGlmMatrix(boneData->mOffsetMatrix);
 		bones.push_back(bone);
 	}
 	rootBone = createBoneHierarchy(node);
-	createBonesVertices(rootBone, aiMatrix4x4());
-	skeletonLine.setUp();
-}
-
-void Skeleton::readAnimation(aiAnimation* animation)
-{
-	ticksPerSecond = (float)animation->mTicksPerSecond;
-	durationInTicks = (float)animation->mDuration;
-
-	for (unsigned int i = 0; i < animation->mNumChannels; i++)
-	{
-		aiNodeAnim* boneAnimation = animation->mChannels[i];
-		std::string jointName = boneAnimation->mNodeName.C_Str();
-		unsigned int boneId = boneName2Index.at(jointName);
-
-		int keyframeCnt = boneAnimation->mNumPositionKeys;
-		for (unsigned int j = 0; j < keyframeCnt; j++)
-		{
-			float timeInTicks = (float)boneAnimation->mPositionKeys[j].mTime;
-
-			glm::vec3 translationVect = assimpToGlmVec3(boneAnimation->mPositionKeys[j].mValue);
-			glm::vec3 scaleVect = assimpToGlmVec3(boneAnimation->mScalingKeys[j].mValue);
-			aiQuaternion rotationQuat = boneAnimation->mRotationKeys[j].mValue;
-
-			Keyframe* currKeyframe = new Keyframe(translationVect, scaleVect, rotationQuat, timeInTicks);
-			bones[boneId]->keyframes.push_back(currKeyframe);
-		}
-	}
+	boneTransforms.resize(bones.size());
+// 	createBonesVertices(rootBone, aiMatrix4x4());
+// 	skeletonLine.setUp();
 }
 
 void Skeleton::draw(Shader& shader)
@@ -63,40 +36,18 @@ void Skeleton::draw(Shader& shader)
 
 void Skeleton::changePose(Shader& shader)
 {
-	boneTransforms.resize(bones.size());
 	if (this->startTime < 0.0f)
 	{
 		std::cout << "start time set!!!\n";
 		startTime = (float)glfwGetTime();
 	}
 
-	if (!animationActive)
-	{
-		for (unsigned int i = 0; i < bones.size(); i++)
-			boneTransforms[i] = globalInverseTransform;
-	}
-	else
-		runAnimation();
+	float timeElapsed = (float)glfwGetTime() - startTime;
+	float ticksElapsed = fmod((timeElapsed * ticksPerSecond), durationInTicks);
+	calculateBoneTransform(rootBone, glm::mat4(1.0f), ticksElapsed);
 
 	glm::mat4* ptr = boneTransforms.data();
 	shader.setMat4("bone_transforms", bones.size(), boneTransforms[0]);
-}
-
-void Skeleton::runAnimation()
-{
-	float timeElapsed = (float)glfwGetTime() - startTime;
-	float ticksElapsed = fmod((timeElapsed * ticksPerSecond), durationInTicks);
-
-	for (unsigned int i = 0; i < bones.size(); i++)
-	{
-		glm::mat4 modelM = bones[i]->getCurrentTransform(ticksElapsed);
-		bones[i]->localAnimationM = modelM;
-	}
-
-	generateGlobalAnimationMatrices(rootBone);
-
-	boneTransforms.resize(bones.size());
-	setFinalBoneTransforms();
 }
 
 Bone* Skeleton::createBoneHierarchy(aiNode* node)
@@ -108,6 +59,7 @@ Bone* Skeleton::createBoneHierarchy(aiNode* node)
 		unsigned int id = boneName2Index.at(nodeName);
 		Bone* bone = bones[id];
 		bone->mTransform = node->mTransformation;
+		bone->transformation = assimpToGlmMatrix(node->mTransformation);
 
 		//set parent
 		if (node->mParent == NULL)
@@ -150,35 +102,18 @@ Bone* Skeleton::createBoneHierarchy(aiNode* node)
 	}
 }
 
-void Skeleton::setFinalBoneTransforms()
+void Skeleton::calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, float delta)
 {
-	for (unsigned int i = 0; i < bones.size(); i++)
-	{
-		glm::mat4 invBindPoseM = bones[i]->invBindPoseM;
-		glm::mat4 globalAnimationM = bones[i]->globalAnimationM;
-		glm::mat4 finalM = globalInverseTransform * globalAnimationM * glm::transpose(invBindPoseM);
+	std::string nodeName = bone->name;
+	glm::mat4 nodeTransform = bone->transformation;
+	bone->update(delta);
+	nodeTransform = bone->localTransform;
 
-		boneTransforms[i] = finalM;
-	}
-}
+	glm::mat4 globalTransformation = parentTransform * nodeTransform;
+	boneTransforms[bone->id] = globalTransformation * bone->offset;
 
-void Skeleton::generateGlobalAnimationMatrices(Bone* bone)
-{
-	//根关节的全局动画矩阵是其局部动画矩阵
-	if (bone->parent == nullptr)
-		bone->globalAnimationM = bone->localAnimationM;
-	else
-	{
-		glm::mat4 globalAnimationM = bone->parent->globalAnimationM * bone->localAnimationM;
-		bone->globalAnimationM = globalAnimationM;
-
-	}
-
-	unsigned int childCnt = bone->children.size();
-	for (unsigned int i = 0; i < childCnt; i++)
-	{
-		generateGlobalAnimationMatrices(bone->children[i]);
-	}
+	for (int i = 0; i < bone->children.size(); i++)
+		calculateBoneTransform(bone->children[i], globalTransformation, delta);
 }
 
 void Skeleton::createBonesVertices(Bone* bone, aiMatrix4x4 currentTransform)
