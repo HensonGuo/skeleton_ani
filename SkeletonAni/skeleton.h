@@ -3,7 +3,7 @@
 #include "bone.h"
 #include "utils.h"
 #include "shader.h"
-#include "skeleton_drawer.h"
+#include "line_drawer.h"
 
 #include <map>
 #include <GLFW/glfw3.h>
@@ -16,7 +16,6 @@ public:
 	std::vector<Bone*> bones;
 	std::vector<glm::mat4> boneTransforms;
 	std::map<std::string, unsigned int> boneName2Index;
-	std::vector<glm::vec3> bonePositions;
 
 	float startTime = -1.0f;
 	float durationInTicks;
@@ -31,9 +30,9 @@ private:
 	Bone* createBoneHierarchy(aiNode* node, aiMatrix4x4 currentTransform);
 	void calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, float delta);
 
-	SkeletonDrawer skeletonDrawer;
-	void updateSkeletonDrawer(Bone* bone, mat4 currentTransform);
+	LineDrawer transformLineDrawer;
+	void updateTransformDrawer(Bone* bone, mat4 currentTransform);
 
-	SkeletonDrawer boneDrawer;
-	void setBonesPosition(Bone* bone);
+	LineDrawer skeletonLineDrawer;
+	void connectBones(Bone* bone);
 };

@@ -44,12 +44,10 @@ public:
 	/*偏移矩阵将顶点从模型空间转换为骨骼空间*/
 	mat4 offset;
 	mat4 transformation;
+	vec3 position;
 
 	Bone* parent;
 	vector<Bone*> children = {};
-
-	aiMatrix4x4 mTransform;
-	aiMatrix4x4 mTempTransform;
 
 	Bone(const string& name, int ID, const aiNodeAnim* channel);
 	void update(float delta);

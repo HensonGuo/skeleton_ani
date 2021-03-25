@@ -148,7 +148,7 @@
   <ItemGroup>
     <ClInclude Include="bone.h" />
     <ClInclude Include="camera.h" />
-    <ClInclude Include="skeleton_drawer.h" />
+    <ClInclude Include="line_drawer.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="shader.h" />
@@ -160,7 +160,7 @@
   <ItemGroup>
     <ClCompile Include="bone.cpp" />
     <ClCompile Include="glad.c" />
-    <ClCompile Include="skeleton_drawer.cpp" />
+    <ClCompile Include="line_drawer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="model.cpp" />

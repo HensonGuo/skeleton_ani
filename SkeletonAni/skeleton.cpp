@@ -25,20 +25,21 @@ void Skeleton::readBones(aiMesh* mesh, aiNode* node, aiAnimation* animation)
 	}
 	rootBone = createBoneHierarchy(node, aiMatrix4x4());
 	boneTransforms.resize(bones.size());
-// 	createBonesVertices(rootBone, aiMatrix4x4());
 
-	setBonesPosition(rootBone);
-	boneDrawer.setUp();
+	connectBones(rootBone);
+	skeletonLineDrawer.setUp();
 }
 
 void Skeleton::draw(Shader& shader)
 {
-	skeletonDrawer.clear();
-	updateSkeletonDrawer(rootBone, mat4(1.0f));
-	skeletonDrawer.setUp();
-	skeletonDrawer.draw(shader);
+	transformLineDrawer.clear();
+	updateTransformDrawer(rootBone, mat4(1.0f));
+	transformLineDrawer.setUp();
+	transformLineDrawer.setLineWidth(2);
+	transformLineDrawer.draw(shader);
 
-	boneDrawer.draw(shader);
+	skeletonLineDrawer.setLineWidth(6);
+	skeletonLineDrawer.draw(shader);
 }
 
 void Skeleton::changePose(Shader& shader)
@@ -68,7 +69,7 @@ Bone* Skeleton::createBoneHierarchy(aiNode* node, aiMatrix4x4 currentTransform)
 		bone->transformation = assimpToGlmMatrix(node->mTransformation);
 
 		currentTransform = currentTransform * node->mTransformation;
-		bonePositions.push_back(vec3(currentTransform.a4, currentTransform.b4, currentTransform.c4));
+		bone->position = vec3(currentTransform.a4, currentTransform.b4, currentTransform.c4);
 
 		//set parent
 		if (node->mParent == NULL)
@@ -115,8 +116,11 @@ void Skeleton::calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, flo
 {
 	std::string nodeName = bone->name;
 	glm::mat4 nodeTransform = bone->transformation;
-	bone->update(delta);
-	nodeTransform = bone->localTransform;
+	if (animationActive)
+	{
+		bone->update(delta);
+		nodeTransform = bone->localTransform;
+	}
 
 	glm::mat4 globalTransformation = parentTransform * nodeTransform;
 	boneTransforms[bone->id] = globalTransformation * bone->offset;
@@ -125,7 +129,7 @@ void Skeleton::calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, flo
 		calculateBoneTransform(bone->children[i], globalTransformation, delta);
 }
 
-void Skeleton::updateSkeletonDrawer(Bone* bone, mat4 currentTransform)
+void Skeleton::updateTransformDrawer(Bone* bone, mat4 currentTransform)
 {
 	for (int boneIndex = 0; boneIndex < bones.size(); ++boneIndex)
 	{
@@ -135,23 +139,23 @@ void Skeleton::updateSkeletonDrawer(Bone* bone, mat4 currentTransform)
 		{
 			const vec3 start = currentTransform * boneTransforms[bone->id] * vec4(0, 0, 0, 1);
 			const vec3 end = currentTransform * boneTransforms[parent->id] * vec4(0, 0, 0, 1);
-			skeletonDrawer.addBoneLine(start, bone->id, end, parent->id, vec4(0, 1, 0, 1));
+			transformLineDrawer.addBoneLine(start, bone->id, end, parent->id, vec4(0, 1, 0, 1));
 		}
 	}
 }
 
-void Skeleton::setBonesPosition(Bone* bone)
+void Skeleton::connectBones(Bone* bone)
 {
 	if (bone->parent) {
 		const Bone* parent = bone->parent;
 		uint startBoneId = boneName2Index.at(bone->name);
 		uint endBoneId = boneName2Index.at(parent->name);
 
-		boneDrawer.addBoneLine(bonePositions[bone->id], bone->id, bonePositions[parent->id], parent->id, vec4(0, 0, 1, 1));
+		skeletonLineDrawer.addBoneLine(bone->position, bone->id, parent->position, parent->id, vec4(0, 0, 1, 1));
 	}
 
 	for (auto it = bone->children.begin(); it != bone->children.end(); ++it) {
 
-		setBonesPosition(*it);
+		connectBones(*it);
 	}
 }
