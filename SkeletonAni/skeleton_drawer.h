@@ -14,7 +14,7 @@ public:
 	void draw(Shader& shader);
 	void setUp();
 	void clear();
-//private:
+private:
 	struct Vertex {
 		vec3 position;
 		vec4 color;

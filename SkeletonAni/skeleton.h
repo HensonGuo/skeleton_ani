@@ -16,6 +16,7 @@ public:
 	std::vector<Bone*> bones;
 	std::vector<glm::mat4> boneTransforms;
 	std::map<std::string, unsigned int> boneName2Index;
+	std::vector<glm::vec3> bonePositions;
 
 	float startTime = -1.0f;
 	float durationInTicks;
@@ -27,9 +28,12 @@ public:
 	void draw(Shader& shader);
 	void changePose(Shader& shader);
 private:
-	Bone* createBoneHierarchy(aiNode* node);
+	Bone* createBoneHierarchy(aiNode* node, aiMatrix4x4 currentTransform);
 	void calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, float delta);
 
 	SkeletonDrawer skeletonDrawer;
 	void updateSkeletonDrawer(Bone* bone, mat4 currentTransform);
+
+	SkeletonDrawer boneDrawer;
+	void setBonesPosition(Bone* bone);
 };
