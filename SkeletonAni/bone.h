@@ -55,9 +55,6 @@ public:
 	void update(float delta);
 
 private:
-	int numPositions;
-	int numRotations;
-	int numScalings;
 	int keyframeSize;
 	std::vector<PositionKeyframe> positions;
 	std::vector<RotationKeyframe> rotations;

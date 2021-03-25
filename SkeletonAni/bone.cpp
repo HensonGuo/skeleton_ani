@@ -7,8 +7,8 @@ Bone::Bone(const std::string& name, int ID, const aiNodeAnim* channel)
 {
 	if (!channel)
 		return;
-	numPositions = channel->mNumPositionKeys;
-	for (int positionIndex = 0; positionIndex < numPositions; ++positionIndex)
+	keyframeSize = channel->mNumPositionKeys;
+	for (int positionIndex = 0; positionIndex < keyframeSize; ++positionIndex)
 	{
 		aiVector3D aiPosition = channel->mPositionKeys[positionIndex].mValue;
 		float timeStamp = channel->mPositionKeys[positionIndex].mTime;
@@ -18,8 +18,7 @@ Bone::Bone(const std::string& name, int ID, const aiNodeAnim* channel)
 		positions.push_back(data);
 	}
 
-	numRotations = channel->mNumRotationKeys;
-	for (int rotationIndex = 0; rotationIndex < numRotations; ++rotationIndex)
+	for (int rotationIndex = 0; rotationIndex < keyframeSize; ++rotationIndex)
 	{
 		aiQuaternion aiOrientation = channel->mRotationKeys[rotationIndex].mValue;
 		float timeStamp = channel->mRotationKeys[rotationIndex].mTime;
@@ -29,8 +28,7 @@ Bone::Bone(const std::string& name, int ID, const aiNodeAnim* channel)
 		rotations.push_back(data);
 	}
 
-	numScalings = channel->mNumScalingKeys;
-	for (int keyIndex = 0; keyIndex < numScalings; ++keyIndex)
+	for (int keyIndex = 0; keyIndex < keyframeSize; ++keyIndex)
 	{
 		aiVector3D scale = channel->mScalingKeys[keyIndex].mValue;
 		float timeStamp = channel->mScalingKeys[keyIndex].mTime;
@@ -55,7 +53,7 @@ void Bone::update(float delta)
 
 int Bone::getKeyFrameIndex(float delta)
 {
-	for (int index = 0; index < numPositions - 1; ++index)
+	for (int index = 0; index < keyframeSize - 1; ++index)
 	{
 		if (delta < positions[index + 1].timeStamp)
 			return index;
@@ -74,7 +72,7 @@ float Bone::getFactor(float lastFrameStamp, float nextFrameStamp, float delta)
 
 glm::mat4 Bone::interpolatePosition(int frameIndex, float factor)
 {
-	if (1 == numPositions)
+	if (keyframeSize == 1)
 		return glm::translate(glm::mat4(1.0f), positions[0].position);
 
 	int p0Index = frameIndex;
@@ -87,7 +85,7 @@ glm::mat4 Bone::interpolatePosition(int frameIndex, float factor)
 
 glm::mat4 Bone::interpolateRotation(int frameIndex, float factor)
 {
-	if (1 == numRotations)
+	if (keyframeSize == 1)
 	{
 		auto rotation = glm::normalize(rotations[0].orientation);
 		return glm::toMat4(rotation);
@@ -102,7 +100,7 @@ glm::mat4 Bone::interpolateRotation(int frameIndex, float factor)
 
 glm::mat4 Bone::interpolateScaling(int frameIndex, float factor)
 {
-	if (1 == numScalings)
+	if (keyframeSize == 1)
 		return glm::scale(glm::mat4(1.0f), scales[0].scale);
 
 	int p0Index = frameIndex;

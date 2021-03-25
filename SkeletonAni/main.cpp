@@ -81,20 +81,22 @@ int main(int argc, char ** argv) {
 		glm::mat4 modelTrans = glm::mat4(1.0);
 		modelTrans = glm::rotate(modelTrans, glm::radians(yRotation), glm::vec3(0.0, 1.0, 0.0));
 		modelTrans = glm::rotate(modelTrans, glm::radians(xRotation), glm::vec3(1.0, 0.0, 0.0));
-		shader.setMat4("model", modelTrans);
-		lineShader.setMat4("model", modelTrans);
 		glm::mat4 viewTrans = camera.GetViewMatrix();
-		shader.setMat4("view", viewTrans);
-		lineShader.setMat4("view", viewTrans);
 		glm::mat4 projectionTrans = glm::perspective(glm::radians(camera.Zoom), (float)windowWidth / (float)windowHeight, 0.1f, 200.0f);
-		shader.setMat4("projection", projectionTrans);
-		lineShader.setMat4("projection", projectionTrans);
 
 		shader.use();
+		shader.setMat4("model", modelTrans);
+		shader.setMat4("view", viewTrans);
+		shader.setMat4("projection", projectionTrans);
 		model.draw(shader, DRAW_ENTITY);
+		shader.unuse();
 
 // 		lineShader.use();
+// 		lineShader.setMat4("model", modelTrans);
+// 		lineShader.setMat4("view", viewTrans);
+// 		lineShader.setMat4("projection", projectionTrans);
 // 		model.draw(lineShader, DRAW_SKELETON);
+// 		lineShader.unuse();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
