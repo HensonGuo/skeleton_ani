@@ -2,7 +2,7 @@
 
 layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec4 in_color;
-layout (location = 2) in int boneId;
+layout(location = 2) in int index;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -13,11 +13,7 @@ out vec4 color;
 
 void main() 
 {
-	mat4 boneM = bone_transforms[boneId];
-	vec4 newPosition = boneM * vec4(in_position, 1.0f);
-	
     mat4 MVP = projection * view * model;
     gl_Position = MVP * vec4(in_position, 1.0);
-    //gl_Position = MVP * newPosition;
     color = in_color;
 }

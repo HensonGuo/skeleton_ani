@@ -6,6 +6,7 @@
 #include "shader.h"
 #include "material.h"
 #include "skeleton.h"
+#include "constants.h"
 
 #include <iostream>
 #include <vector>
@@ -21,12 +22,6 @@
 
 using namespace std;
 using namespace glm;
-
-enum DrawType {
-	DRAW_ENTITY,
-	DRAW_SKELETON,
-	DRAW_GRID,
-};
 
 
 class Model

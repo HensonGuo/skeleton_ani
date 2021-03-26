@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "shader.h"
 #include "line_drawer.h"
+#include "constants.h"
 
 #include <map>
 #include <GLFW/glfw3.h>
@@ -15,6 +16,7 @@ public:
 	Bone* rootBone;
 	std::vector<Bone*> bones;
 	std::vector<glm::mat4> boneTransforms;
+	std::vector<glm::mat4> modelTransforms;
 	std::map<std::string, unsigned int> boneName2Index;
 
 	float startTime = -1.0f;
@@ -25,7 +27,7 @@ public:
 	Skeleton();
 	void readBones(aiMesh* mesh, aiNode* node, aiAnimation* animation);
 	void draw(Shader& shader);
-	void changePose(Shader& shader);
+	void changePose(Shader& shader, DrawType drawType);
 private:
 	Bone* createBoneHierarchy(aiNode* node, aiMatrix4x4 currentTransform);
 	void calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, float delta);

@@ -49,12 +49,12 @@ void Model::draw(Shader& shader, DrawType drawType)
 {
 	if (drawType == DRAW_ENTITY)
 	{
-		skeleton->changePose(shader);
+		skeleton->changePose(shader, drawType);
 		mesh.draw(shader);
 	}
 	else if (drawType == DRAW_SKELETON)
 	{
-		skeleton->changePose(shader);
+		skeleton->changePose(shader, drawType);
 		skeleton->draw(shader);
 	}
 }

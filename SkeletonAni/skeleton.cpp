@@ -25,24 +25,23 @@ void Skeleton::readBones(aiMesh* mesh, aiNode* node, aiAnimation* animation)
 	}
 	rootBone = createBoneHierarchy(node, aiMatrix4x4());
 	boneTransforms.resize(bones.size());
+	modelTransforms.resize(bones.size());
 
 	connectBones(rootBone);
-	skeletonLineDrawer.setUp();
 }
 
 void Skeleton::draw(Shader& shader)
 {
 	transformLineDrawer.clear();
 	updateTransformDrawer(rootBone, mat4(1.0f));
-	transformLineDrawer.setUp();
 	transformLineDrawer.setLineWidth(2);
-	transformLineDrawer.draw(shader);
+ 	transformLineDrawer.draw(shader);
 
 	skeletonLineDrawer.setLineWidth(6);
 	skeletonLineDrawer.draw(shader);
 }
 
-void Skeleton::changePose(Shader& shader)
+void Skeleton::changePose(Shader& shader, DrawType drawType)
 {
 	if (this->startTime < 0.0f)
 	{
@@ -54,8 +53,16 @@ void Skeleton::changePose(Shader& shader)
 	float ticksElapsed = fmod((timeElapsed * ticksPerSecond), durationInTicks);
 	calculateBoneTransform(rootBone, glm::mat4(1.0f), ticksElapsed);
 
-	glm::mat4* ptr = boneTransforms.data();
-	shader.setMat4("bone_transforms", bones.size(), boneTransforms[0]);
+	if (drawType == DRAW_ENTITY)
+	{
+		glm::mat4* ptr = boneTransforms.data();
+		shader.setMat4("bone_transforms", bones.size(), boneTransforms[0]);
+	}
+	else if (drawType == DRAW_SKELETON)
+	{
+		glm::mat4* ptr = modelTransforms.data();
+		shader.setMat4("bone_transforms", bones.size(), modelTransforms[0]);
+	}
 }
 
 Bone* Skeleton::createBoneHierarchy(aiNode* node, aiMatrix4x4 currentTransform)
@@ -126,7 +133,7 @@ void Skeleton::calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, flo
 	boneTransforms[bone->id] = globalTransformation * bone->offset;
 
 	//不计算offset即是模型空间，*offset即转换到骨骼空间
-	boneTransforms[bone->id] = globalTransformation;
+	modelTransforms[bone->id] = globalTransformation;
 
 	for (int i = 0; i < bone->children.size(); i++)
 		calculateBoneTransform(bone->children[i], globalTransformation, delta);
@@ -140,9 +147,10 @@ void Skeleton::updateTransformDrawer(Bone* bone, mat4 currentTransform)
 		const Bone* parent = bone->parent;
 		if (parent)
 		{
-			const vec3 start = currentTransform * boneTransforms[bone->id] * vec4(0, 0, 0, 1);
-			const vec3 end = currentTransform * boneTransforms[parent->id] * vec4(0, 0, 0, 1);
-			transformLineDrawer.addBoneLine(start, bone->id, end, parent->id, vec4(0, 1, 0, 1));
+			vec3 start = currentTransform * modelTransforms[bone->id] * vec4(0, 0, 0, 1);
+			vec3 end = currentTransform * modelTransforms[parent->id] * vec4(0, 0, 0, 1);
+			vec4 color = BoneColor;
+			transformLineDrawer.addBoneLine(start, bone->id, end, parent->id, color);
 		}
 	}
 }
