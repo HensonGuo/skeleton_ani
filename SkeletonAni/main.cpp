@@ -20,6 +20,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 void updateGui();
+void selectDrawMode();
 
 Camera camera(glm::vec3(0.0f, 5.0f, 30.0f));
 float lastX = windowWidth / 2.0f;
@@ -86,8 +87,8 @@ int main(int argc, char ** argv) {
 	);
 
 
-	Shader lineShader("./../resources/shaders/lineV.txt", "./../resources/shaders/lineF.txt");
-	Shader shader("./../resources/shaders/vertext.txt", "./../resources/shaders/fragment.txt");
+	Shader skeletonShader("./../resources/shaders/lineV.txt", "./../resources/shaders/lineF.txt");
+	Shader modelShader("./../resources/shaders/vertext.txt", "./../resources/shaders/fragment.txt");
 	Model model("./../resources/model.dae");
 	model.playAnimation(true);
 
@@ -115,20 +116,26 @@ int main(int argc, char ** argv) {
 		glm::mat4 viewTrans = camera.GetViewMatrix();
 		glm::mat4 projectionTrans = glm::perspective(glm::radians(camera.Zoom), (float)windowWidth / (float)windowHeight, 0.1f, 200.0f);
 
-		shader.use();
-		shader.setMat4("model", modelTrans);
-		shader.setMat4("view", viewTrans);
-		shader.setMat4("projection", projectionTrans);
-		model.draw(shader, DRAW_ENTITY);
-		shader.unuse();
-
-		lineShader.use();
-		lineShader.setMat4("model", modelTrans);
-		lineShader.setMat4("view", viewTrans);
-		lineShader.setMat4("projection", projectionTrans);
-		model.draw(lineShader, DRAW_SKELETON);
-		lineShader.unuse();
-
+		if (drawModel)
+		{
+			modelShader.use();
+			modelShader.setMat4("model", modelTrans);
+			modelShader.setMat4("view", viewTrans);
+			modelShader.setMat4("projection", projectionTrans);
+			model.draw(modelShader, DRAW_ENTITY);
+			modelShader.unuse();
+		}
+		
+		if (drawSkeleton)
+		{
+			skeletonShader.use();
+			skeletonShader.setMat4("model", modelTrans);
+			skeletonShader.setMat4("view", viewTrans);
+			skeletonShader.setMat4("projection", projectionTrans);
+			model.draw(skeletonShader, DRAW_SKELETON);
+			skeletonShader.unuse();
+		}
+		
 		updateGui();
 
 		ImGui::Render();
@@ -159,6 +166,11 @@ void updateGui()
 	ImGui::SameLine();
 	ImGui::Button(u8"ÔÝÍ£");
 	ImGui::End();
+}
+
+void selectDrawMode()
+{
+
 }
 
 
