@@ -72,8 +72,6 @@ int main(int argc, char ** argv) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsClassic();//ÉèÖÃimguiÑùÊ½
-	ImGuiIO& io = ImGui::GetIO();
-	//io.Fonts->AddFontFromFileTTF(u8"c:\\Windows\\Fonts\\Î¢ÈíÑÅºÚ.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesChineseFull());
 	
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 130");
@@ -115,6 +113,16 @@ int main(int argc, char ** argv) {
 		modelTrans = glm::rotate(modelTrans, glm::radians(xRotation), glm::vec3(1.0, 0.0, 0.0));
 		glm::mat4 viewTrans = camera.GetViewMatrix();
 		glm::mat4 projectionTrans = glm::perspective(glm::radians(camera.Zoom), (float)windowWidth / (float)windowHeight, 0.1f, 200.0f);
+
+		if (drawMesh)
+		{
+			glLineWidth(1);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		else
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
 
 		if (drawModel)
 		{

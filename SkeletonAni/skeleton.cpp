@@ -27,18 +27,18 @@ void Skeleton::readBones(aiMesh* mesh, aiNode* node, aiAnimation* animation)
 	boneTransforms.resize(bones.size());
 	modelTransforms.resize(bones.size());
 
-	connectBones(rootBone);
+	//connectBones(rootBone);
 }
 
 void Skeleton::draw(Shader& shader)
 {
 	transformLineDrawer.clear();
 	updateTransformDrawer(rootBone, mat4(1.0f));
-	transformLineDrawer.setLineWidth(2);
+	transformLineDrawer.setLineWidth(5);
  	transformLineDrawer.draw(shader);
 
-	skeletonLineDrawer.setLineWidth(6);
-	skeletonLineDrawer.draw(shader);
+// 	skeletonLineDrawer.setLineWidth(6);
+// 	skeletonLineDrawer.draw(shader);
 }
 
 void Skeleton::changePose(Shader& shader, DrawType drawType)
