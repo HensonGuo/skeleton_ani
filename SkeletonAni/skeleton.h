@@ -22,13 +22,17 @@ public:
 	float startTime = -1.0f;
 	float durationInTicks;
 	float ticksPerSecond;
+	float ticksElapsed;
 	bool animationActive = false;
 
 	Skeleton();
 	void readBones(aiMesh* mesh, aiNode* node, aiAnimation* animation);
 	void draw(Shader& shader);
 	void changePose(Shader& shader, DrawType drawType);
+	void keepPose(Shader& shader, DrawType drawType);
+	void reCalculateTransform(float elapsed);
 private:
+	void applyPose(Shader& shader, DrawType drawType);
 	Bone* createBoneHierarchy(aiNode* node, aiMatrix4x4 currentTransform);
 	void calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, float delta);
 

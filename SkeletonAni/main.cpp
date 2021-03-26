@@ -20,7 +20,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 void updateGui();
-void selectDrawMode();
 
 Camera camera(glm::vec3(0.0f, 5.0f, 30.0f));
 float lastX = windowWidth / 2.0f;
@@ -37,6 +36,9 @@ static bool drawModel = true;
 static bool drawMesh = false;
 static bool drawSkeleton = false;
 static float animationDuration = 10;
+static float animationElapsed = 0;
+
+Model model;
 
 /*
 ¹Ç÷À¶¯»­ demo
@@ -87,8 +89,9 @@ int main(int argc, char ** argv) {
 
 	Shader skeletonShader("./../resources/shaders/lineV.txt", "./../resources/shaders/lineF.txt");
 	Shader modelShader("./../resources/shaders/vertext.txt", "./../resources/shaders/fragment.txt");
-	Model model("./../resources/model.dae");
-	model.playAnimation(true);
+	
+	model.loadModel("./../resources/model.dae");
+	model.playAnimation(false);
 
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(1.0, 1.0, 1.0, 0.0);
@@ -143,8 +146,12 @@ int main(int argc, char ** argv) {
 			model.draw(skeletonShader, DRAW_SKELETON);
 			skeletonShader.unuse();
 		}
-		
+
+		animationDuration = model.getAniDuration();
+		animationElapsed = model.getAniElapsed();
 		updateGui();
+
+		
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -168,19 +175,26 @@ void updateGui()
 	ImGui::Checkbox(u8"Ä£ÐÍ", &drawModel);ImGui::SameLine();
 	ImGui::Checkbox(u8"Íø¸ñ", &drawMesh);ImGui::SameLine();
 	ImGui::Checkbox(u8"¹Ç÷À", &drawSkeleton);
-	//ImGui::SameLine();
 	ImGui::Text(u8"¶¯»­");
-	ImGui::SliderFloat("", &animationDuration, 0, 100);
+	ImGui::SliderFloat("", &animationElapsed, 0, animationDuration);
 	ImGui::SameLine();
-	ImGui::Button(u8"ÔÝÍ£");
+	if (model.isPlayingAnimation())
+	{
+		if (ImGui::Button(u8"ÔÝÍ£"))
+		{
+			model.playAnimation(false);
+		}
+	}
+	else
+	{
+		if (ImGui::Button(u8"²¥·Å"))
+		{
+			model.playAnimation(true);
+		}
+		model.changePose(animationElapsed);
+	}
 	ImGui::End();
 }
-
-void selectDrawMode()
-{
-
-}
-
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {

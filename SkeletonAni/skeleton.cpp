@@ -50,9 +50,26 @@ void Skeleton::changePose(Shader& shader, DrawType drawType)
 	}
 
 	float timeElapsed = (float)glfwGetTime() - startTime;
-	float ticksElapsed = fmod((timeElapsed * ticksPerSecond), durationInTicks);
+	ticksElapsed = fmod((timeElapsed * ticksPerSecond), durationInTicks);
 	calculateBoneTransform(rootBone, glm::mat4(1.0f), ticksElapsed);
+	applyPose(shader, drawType);
+}
 
+void Skeleton::keepPose(Shader& shader, DrawType drawType)
+{
+	applyPose(shader, drawType);
+}
+
+void Skeleton::reCalculateTransform(float elapsed)
+{
+	ticksElapsed = elapsed;
+	animationActive = true;
+	calculateBoneTransform(rootBone, glm::mat4(1.0f), elapsed);
+	animationActive = false;
+}
+
+void Skeleton::applyPose(Shader& shader, DrawType drawType)
+{
 	if (drawType == DRAW_ENTITY)
 	{
 		glm::mat4* ptr = boneTransforms.data();
@@ -73,7 +90,7 @@ Bone* Skeleton::createBoneHierarchy(aiNode* node, aiMatrix4x4 currentTransform)
 	{
 		unsigned int id = boneName2Index.at(nodeName);
 		Bone* bone = bones[id];
-		bone->transformation = assimpToGlmMatrix(node->mTransformation);
+		bone->localTransform = assimpToGlmMatrix(node->mTransformation);
 
 		currentTransform = currentTransform * node->mTransformation;
 		bone->position = vec3(currentTransform.a4, currentTransform.b4, currentTransform.c4);
@@ -122,7 +139,7 @@ Bone* Skeleton::createBoneHierarchy(aiNode* node, aiMatrix4x4 currentTransform)
 void Skeleton::calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, float delta)
 {
 	std::string nodeName = bone->name;
-	glm::mat4 nodeTransform = bone->transformation;
+	glm::mat4 nodeTransform = bone->localTransform;
 	if (animationActive)
 	{
 		bone->update(delta);

@@ -27,11 +27,16 @@ using namespace glm;
 class Model
 {
 public:
+	Model();
 	Model(const string& path);
 	void loadModel(const string& path);
 	void draw(Shader &shader, DrawType drawType);
 	void playAnimation(bool active);
+	bool isPlayingAnimation();
 
+	float getAniDuration();
+	float getAniElapsed();
+	void changePose(float delta);
 private:
 	void readVertices(aiMesh* aimesh);
 	void readIndices(aiMesh* aimesh);

@@ -1,13 +1,18 @@
 #include "model.h"
 
+Model::Model()
+{
+}
+
 Model::Model(const string& path)
 {
-	this->skeleton = new Skeleton();
 	this->loadModel(path);
 }
 
 void Model::loadModel(const string& path)
 {
+	this->skeleton = new Skeleton();
+
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
 
@@ -47,21 +52,40 @@ void Model::loadModel(const string& path)
 
 void Model::draw(Shader& shader, DrawType drawType)
 {
+	if (skeleton->animationActive)
+		skeleton->changePose(shader, drawType);
+	else
+		skeleton->keepPose(shader, drawType);
+
 	if (drawType == DRAW_ENTITY)
-	{
-		skeleton->changePose(shader, drawType);
 		mesh.draw(shader);
-	}
 	else if (drawType == DRAW_SKELETON)
-	{
-		skeleton->changePose(shader, drawType);
 		skeleton->draw(shader);
-	}
 }
 
 void Model::playAnimation(bool active)
 {
 	this->skeleton->animationActive = active;
+}
+
+bool Model::isPlayingAnimation()
+{
+	return this->skeleton->animationActive;
+}
+
+float Model::getAniDuration()
+{
+	return this->skeleton->durationInTicks;
+}
+
+float Model::getAniElapsed()
+{
+	return this->skeleton->ticksElapsed;
+}
+
+void Model::changePose(float delta)
+{
+	this->skeleton->reCalculateTransform(delta);
 }
 
 

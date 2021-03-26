@@ -43,7 +43,6 @@ public:
 	mat4 localTransform;
 	/*偏移矩阵将顶点从模型空间转换为骨骼空间*/
 	mat4 offset;
-	mat4 transformation;
 	vec3 position;
 
 	Bone* parent;
