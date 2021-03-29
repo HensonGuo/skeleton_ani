@@ -12,12 +12,17 @@
 
 const int windowWidth = 800;
 const int windowHeight = 600;
+int viewportX = 0;
+int viewportY = 0;
+int viewportWidth = 800;
+int viewportHeight = 600;
 
 // callback
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void cursor_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
 void updateGui();
 
@@ -37,6 +42,8 @@ static bool drawMesh = false;
 static bool drawSkeleton = false;
 static float animationDuration = 10;
 static float animationElapsed = 0;
+
+bool isRotationMode = false;
 
 Model model;
 
@@ -60,8 +67,9 @@ int main(int argc, char ** argv) {
 	}
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetCursorPosCallback(window, cursor_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -151,8 +159,6 @@ int main(int argc, char ** argv) {
 		animationElapsed = model.getAniElapsed();
 		updateGui();
 
-		
-
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -176,7 +182,13 @@ void updateGui()
 	ImGui::Checkbox(u8"网格", &drawMesh);ImGui::SameLine();
 	ImGui::Checkbox(u8"骨骼", &drawSkeleton);
 	ImGui::Text(u8"动画");
-	ImGui::SliderFloat("", &animationElapsed, 0, animationDuration);
+
+	if (ImGui::SliderFloat("", &animationElapsed, 0, animationDuration))
+	{
+		isRotationMode = false;
+		model.changePose(animationElapsed);
+	}
+
 	ImGui::SameLine();
 	if (model.isPlayingAnimation())
 	{
@@ -191,7 +203,6 @@ void updateGui()
 		{
 			model.playAnimation(true);
 		}
-		model.changePose(animationElapsed);
 	}
 	ImGui::End();
 }
@@ -199,7 +210,24 @@ void updateGui()
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	// 每当窗口改变大小，GLFW会调用这个函数并填充相应的参数供你处理
-	glViewport(0, 0, width, height);
+	
+	if (height == 0)
+		height = 1;
+	if ((float)width / (float)height > (float)windowWidth / (float)windowHeight)
+	{
+		viewportWidth = (float)windowWidth / (float)windowHeight * height;
+		viewportHeight = height;
+		viewportX = (width - viewportWidth) / 2;
+		viewportY = 0;
+	}
+	else
+	{
+		viewportWidth = width;
+		viewportHeight = (float)windowHeight / (float)windowWidth * width;
+		viewportX = 0;
+		viewportY = (height - viewportHeight) / 2;
+	}
+ 	glViewport(viewportX, viewportY, viewportWidth, viewportHeight);
 }
 
 void processInput(GLFWwindow* window)
@@ -217,7 +245,7 @@ void processInput(GLFWwindow* window)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void cursor_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	if (firstMouse)
 	{
@@ -232,17 +260,22 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-// 	xRotation = ypos - windowHeight/2;
-// 	if (xRotation > 90)
-// 		xRotation = 90;
-// 	else if (xRotation < -90)
-// 		xRotation = -90;
 
-	yRotation = xpos - windowWidth / 2;
-	if (yRotation > 180)
-		yRotation = 180;
-	else if (yRotation < -180)
-		yRotation = -180;
+
+	if (isRotationMode)
+	{
+// 		xRotation = ypos - viewportHeight / 2;
+// 		if (xRotation > 90)
+// 			xRotation = 90;
+// 		else if (xRotation < -90)
+// 			xRotation = -90;
+
+		yRotation = xpos - viewportWidth / 2;
+		if (yRotation > 180)
+			yRotation = 180;
+		else if (yRotation < -180)
+			yRotation = -180;
+	}
 
 	//camera.ProcessMouseMovement(xoffset, yoffset);
 }
@@ -250,4 +283,16 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(yoffset);
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT)
+	{
+		isRotationMode = true;
+	}
+	else if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT)
+	{
+		isRotationMode = false;
+	}
 }
