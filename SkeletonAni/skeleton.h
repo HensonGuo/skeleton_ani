@@ -35,6 +35,7 @@ private:
 	void applyPose(Shader& shader, DrawType drawType);
 	Bone* createBoneHierarchy(aiNode* node, aiMatrix4x4 currentTransform);
 	void calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, float delta);
+	aiNodeAnim* findNodeAnim(const aiAnimation* ani, const std::string& nodeName);
 
 	LineDrawer transformLineDrawer;
 	void updateTransformDrawer(Bone* bone, mat4 currentTransform);

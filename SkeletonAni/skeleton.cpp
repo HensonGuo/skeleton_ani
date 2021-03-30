@@ -17,8 +17,8 @@ void Skeleton::readBones(aiMesh* mesh, aiNode* node, aiAnimation* animation)
 	{
 		aiBone* boneData = mesh->mBones[i];
 		std::string name = boneData->mName.C_Str();
-		auto channel = animation->mChannels[i];
-		Bone* bone = new Bone(name, i, channel);
+		aiNodeAnim* ani = findNodeAnim(animation, name);
+		Bone* bone = new Bone(name, i, ani);
 		boneName2Index.insert(std::pair <std::string, unsigned int>(name, i));
 		bone->offset = assimpToGlmMatrix(boneData->mOffsetMatrix);
 		bones.push_back(bone);
@@ -154,6 +154,18 @@ void Skeleton::calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, flo
 
 	for (int i = 0; i < bone->children.size(); i++)
 		calculateBoneTransform(bone->children[i], globalTransformation, delta);
+}
+
+aiNodeAnim* Skeleton::findNodeAnim(const aiAnimation* ani, const std::string& nodeName)
+{
+	for (uint i = 0; i < ani->mNumChannels; ++i)
+	{
+		if (strcmp(ani->mChannels[i]->mNodeName.C_Str(), nodeName.c_str()) == 0)
+		{
+			return ani->mChannels[i];
+		}
+	}
+	return NULL;
 }
 
 void Skeleton::updateTransformDrawer(Bone* bone, mat4 currentTransform)
