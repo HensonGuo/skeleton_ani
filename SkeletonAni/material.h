@@ -23,8 +23,11 @@ struct Texture
 class Material {
 public:
 	vector<Texture> textures;
-	Material(aiMaterial* mat, aiTextureType type, string type_name, const string directory);
+	Material(aiScene const* scene, aiMaterial* mat, aiTextureType type, string type_name, const string directory);
 	GLuint loadImage(const char* imagePath);
+	GLuint loadImageFromMemory(const aiTexture* texture);
 	void draw(Shader& shader);
 	void reset();
+private:
+	GLuint bind(unsigned char* data, int width, int height, int comp);
 };

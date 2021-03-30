@@ -42,7 +42,7 @@ private:
 	void readIndices(aiMesh* aimesh);
 	void setVerticesWeights(aiMesh* aimesh);
 	void readSkeleton(const aiScene* scene, aiMesh* mesh, aiNode* node);
-	void readMaterial(aiMaterial* material);
+	void readMaterial(aiScene const* scene, aiMaterial* material);
 	void normalizeBonesWeight();
 	void showNodeName(aiNode* node);
 	

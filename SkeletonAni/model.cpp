@@ -42,7 +42,7 @@ void Model::loadModel(const string& path)
 
 	if (aimesh->mMaterialIndex >= 0)
 	{
-		readMaterial(scene->mMaterials[aimesh->mMaterialIndex]);
+		readMaterial(scene, scene->mMaterials[aimesh->mMaterialIndex]);
 	}
 
 	setVerticesWeights(aimesh);
@@ -172,13 +172,13 @@ void Model::readSkeleton(const aiScene* scene, aiMesh* mesh, aiNode* node)
 	skeleton->readBones(mesh, node, ani);
 }
 
-void Model::readMaterial(aiMaterial* material)
+void Model::readMaterial(aiScene const* scene, aiMaterial* material)
 {
 	//Âş·´ÉäÌùÍ¼
-	Material* diffuseMaterial = new Material(material, aiTextureType_DIFFUSE, "diffuse", directory);
+	Material* diffuseMaterial = new Material(scene, material, aiTextureType_DIFFUSE, "diffuse", directory);
 	materials.push_back(diffuseMaterial);
 	//¸ß¹âÌùÍ¼
-	Material* specularMaterial = new Material(material, aiTextureType_DIFFUSE, "specular", directory);
+	Material* specularMaterial = new Material(scene, material, aiTextureType_DIFFUSE, "specular", directory);
 	materials.push_back(specularMaterial);
 }
 
