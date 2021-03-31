@@ -23,6 +23,7 @@ void Skeleton::readBones(aiMesh* mesh, aiNode* node, aiAnimation* animation)
 		bone->offset = assimpToGlmMatrix(boneData->mOffsetMatrix);
 		bones.push_back(bone);
 	}
+	globalTransform = assimpToGlmMatrix(node->mTransformation);
 	rootBone = createBoneHierarchy(node, aiMatrix4x4());
 	boneTransforms.resize(bones.size());
 	modelTransforms.resize(bones.size());
@@ -51,7 +52,7 @@ void Skeleton::changePose(Shader& shader, DrawType drawType)
 
 	float timeElapsed = (float)glfwGetTime() - startTime;
 	ticksElapsed = fmod((timeElapsed * ticksPerSecond), durationInTicks);
-	calculateBoneTransform(rootBone, glm::mat4(1.0f), ticksElapsed);
+	calculateBoneTransform(rootBone, globalTransform, ticksElapsed);
 	applyPose(shader, drawType);
 }
 
@@ -64,7 +65,7 @@ void Skeleton::reCalculateTransform(float elapsed)
 {
 	ticksElapsed = elapsed;
 	animationActive = true;
-	calculateBoneTransform(rootBone, glm::mat4(1.0f), elapsed);
+	calculateBoneTransform(rootBone, globalTransform, elapsed);
 	animationActive = false;
 }
 
@@ -146,14 +147,14 @@ void Skeleton::calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, flo
 		nodeTransform = bone->localTransform;
 	}
 
-	glm::mat4 globalTransformation = parentTransform * nodeTransform;
-	boneTransforms[bone->id] = globalTransformation * bone->offset;
+	glm::mat4 finalTransformation = parentTransform * nodeTransform;
+	boneTransforms[bone->id] = finalTransformation * bone->offset;
 
 	//不计算offset即是模型空间，*offset即转换到骨骼空间
-	modelTransforms[bone->id] = globalTransformation;
+	modelTransforms[bone->id] = finalTransformation;
 
 	for (int i = 0; i < bone->children.size(); i++)
-		calculateBoneTransform(bone->children[i], globalTransformation, delta);
+		calculateBoneTransform(bone->children[i], finalTransformation, delta);
 }
 
 aiNodeAnim* Skeleton::findNodeAnim(const aiAnimation* ani, const std::string& nodeName)

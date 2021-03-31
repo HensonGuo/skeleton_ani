@@ -18,6 +18,7 @@ public:
 	std::vector<glm::mat4> boneTransforms;
 	std::vector<glm::mat4> modelTransforms;
 	std::map<std::string, unsigned int> boneName2Index;
+	glm::mat4 globalTransform;
 
 	float startTime = -1.0f;
 	float durationInTicks;
