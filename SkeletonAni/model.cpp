@@ -33,21 +33,11 @@ void Model::loadModel(const string& path)
 		cout << "Animation TicksPerSecond: " << scene->mAnimations[0]->mTicksPerSecond << endl << endl;
 	}
 
-	aiMesh* aimesh = scene->mMeshes[0];
 	aiNode* rootNode = scene->mRootNode;
 	showNodeName(rootNode);
-	readVertices(aimesh);
-	readIndices(aimesh);
-	readSkeleton(scene, aimesh, rootNode);
-
-	if (aimesh->mMaterialIndex >= 0)
-	{
-		readMaterial(scene, scene->mMaterials[aimesh->mMaterialIndex]);
-	}
-
-	setVerticesWeights(aimesh);
-	normalizeBonesWeight();
-	mesh = Mesh(vertices, indices, materials);
+	processNode(rootNode, scene);
+	processAnimation(scene);
+	skeleton->setRootInfo(rootNode);
 }
 
 void Model::draw(Shader& shader, DrawType drawType)
@@ -58,7 +48,13 @@ void Model::draw(Shader& shader, DrawType drawType)
 		skeleton->keepPose(shader, drawType);
 
 	if (drawType == DRAW_ENTITY)
-		mesh.draw(shader);
+	{
+		for (int i = 0; i < meshes.size(); i++)
+		{
+			Mesh* mesh = meshes[i];
+			mesh->draw(shader);
+		}
+	}
 	else if (drawType == DRAW_SKELETON)
 		skeleton->draw(shader);
 }
@@ -91,115 +87,33 @@ void Model::changePoseStopAtTime(float delta)
 	this->skeleton->animationActive = false;
 }
 
-
-void Model::readVertices(aiMesh* aimesh)
+void Model::processNode(aiNode* node, const aiScene* scene)
 {
-	vertices = {};
-	for (unsigned int i = 0; i < aimesh->mNumVertices; i++) {
-		//位置
-		Vertex vertex;
-		vertex.position = assimpToGlmVec3(aimesh->mVertices[i]);
-		//法线
-		if (aimesh->HasNormals()) {
-			vertex.normal = assimpToGlmVec3(aimesh->mNormals[i]);
-		}
-		else
-		{
-			vertex.normal = vec3();
-		}
-		//纹理
-		vec2 vec;
-		if (aimesh->HasTextureCoords(0))
-		{
-			//一个顶点最多可以包含8个不同的纹理坐标。非多个纹理坐标的模型，取第一组（0）
-			vec.x = aimesh->mTextureCoords[0][i].x;
-			vec.y = aimesh->mTextureCoords[0][i].y;
-		}
-		vertex.texCoords = vec;
-		vertices.push_back(vertex);
+	for (unsigned int i = 0; i < node->mNumMeshes; i++)
+	{
+		//节点对象仅包含索引以索引场景中的实际对象。
+		//场景包含了所有的数据
+		aiMesh* meshData = scene->mMeshes[node->mMeshes[i]];
+		skeleton->readBones(meshData);
+		Mesh* mesh = new Mesh();
+		mesh->readVertices(meshData);
+		mesh->readIndices(meshData);
+		mesh->readMaterials(scene, meshData, directory);
+		mesh->setVerticesWeights(meshData, skeleton);
+		mesh->normalizeBonesWeight();
+		mesh->setup();
+		meshes.push_back(mesh);
+	}
+	for (unsigned int i = 0; i < node->mNumChildren; i++)
+	{
+		processNode(node->mChildren[i], scene);
 	}
 }
 
-void Model::readIndices(aiMesh* aimesh)
+void Model::processAnimation(const aiScene* scene)
 {
-	indices = {};
-	for (unsigned int i = 0; i < aimesh->mNumFaces; i++) {
-		aiFace& face = aimesh->mFaces[i];
-		for (unsigned int j = 0; j < face.mNumIndices; j++)
-			indices.push_back(face.mIndices[j]);
-	}
-}
-
-void Model::setVerticesWeights(aiMesh* aimesh)
-{
-	vector<uint> boneCounts;
-	boneCounts.resize(vertices.size(), 0);
-	uint boneCount = aimesh->mNumBones;
-
-	//循环每个骨骼
-	for (uint i = 0; i < boneCount; i++) {
-		aiBone* bone = aimesh->mBones[i];
-		uint boneId = skeleton->boneName2Index.at(bone->mName.C_Str());
-		//循环每个顶点
-		for (uint j = 0; j < bone->mNumWeights; j++) {
-			uint id = bone->mWeights[j].mVertexId;
-			float weight = bone->mWeights[j].mWeight;
-			boneCounts[id]++;
-			switch (boneCounts[id]) {
-			case 1:
-				vertices[id].boneIds.x = i;
-				vertices[id].boneWeights.x = weight;
-				break;
-			case 2:
-				vertices[id].boneIds.y = i;
-				vertices[id].boneWeights.y = weight;
-				break;
-			case 3:
-				vertices[id].boneIds.z = i;
-				vertices[id].boneWeights.z = weight;
-				break;
-			case 4:
-				vertices[id].boneIds.w = i;
-				vertices[id].boneWeights.w = weight;
-				break;
- 			}
-		}
-	}
-}
-
-void Model::readSkeleton(const aiScene* scene, aiMesh* mesh, aiNode* node)
-{
-	aiAnimation* ani = nullptr;
 	if (scene->HasAnimations() == true)
-		ani = scene->mAnimations[0];
-	skeleton->readBones(mesh, node, ani);
-}
-
-void Model::readMaterial(aiScene const* scene, aiMaterial* material)
-{
-	//漫反射贴图
-	Material* diffuseMaterial = new Material(scene, material, aiTextureType_DIFFUSE, "diffuse", directory);
-	materials.push_back(diffuseMaterial);
-	//高光贴图
-	Material* specularMaterial = new Material(scene, material, aiTextureType_DIFFUSE, "specular", directory);
-	materials.push_back(specularMaterial);
-}
-
-void Model::normalizeBonesWeight()
-{
-	//将权重标准化，使所有权重总和为1
-	for (int i = 0; i < vertices.size(); i++) {
-		vec4& boneWeights = vertices[i].boneWeights;
-		float totalWeight = boneWeights.x + boneWeights.y + boneWeights.z + boneWeights.w;
-		if (totalWeight > 0.0f) {
-			vertices[i].boneWeights = vec4(
-				boneWeights.x / totalWeight,
-				boneWeights.y / totalWeight,
-				boneWeights.z / totalWeight,
-				boneWeights.w / totalWeight
-			);
-		}
-	}
+		skeleton->setAnimation(scene->mAnimations[0]);
 }
 
 void Model::showNodeName(aiNode* node)

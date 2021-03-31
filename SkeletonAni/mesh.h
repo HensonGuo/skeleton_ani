@@ -6,6 +6,8 @@
 
 #include "shader.h"
 #include "material.h"
+#include "utils.h"
+#include "skeleton.h"
 
 
 using namespace std;
@@ -28,7 +30,12 @@ public:
 	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Material*> &materials);
 
 	void draw(Shader& shader);
-
+	void readVertices(aiMesh* aimesh);
+	void readIndices(aiMesh* aimesh);
+	void readMaterials(aiScene const* scene, aiMesh* aimesh, string &directory);
+	void setVerticesWeights(aiMesh* aimesh, Skeleton* skeleton);
+	void normalizeBonesWeight();
+	void setup();
 private:
 	//Mesh data
 	vector<Vertex> vertices;
@@ -38,6 +45,4 @@ private:
 	GLuint VAO;
 	GLuint VBO;
 	GLuint EBO;
-
-	void SetupMesh();
 };

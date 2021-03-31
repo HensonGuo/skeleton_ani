@@ -1,9 +1,33 @@
 #include "bone.h"
 
+Bone::Bone(const string& name, int ID)
+	:name(name),
+	id(ID),
+	localTransform(1.0f)
+{
+}
+
 Bone::Bone(const std::string& name, int ID, const aiNodeAnim* channel)
 	:name(name),
 	id(ID),
 	localTransform(1.0f)
+{
+	setAnimation(channel);
+}
+
+void Bone::update(float delta)
+{
+	int frameIndex = getKeyFrameIndex(delta);
+	float factor = getFactor(rotations[frameIndex].timeStamp,
+		rotations[frameIndex + 1].timeStamp, delta);
+
+	glm::mat4 translation = interpolatePosition(frameIndex, factor);
+	glm::mat4 rotation = interpolateRotation(frameIndex, factor);
+	glm::mat4 scale = interpolateScaling(frameIndex, factor);
+	localTransform = translation * rotation * scale;
+}
+
+void Bone::setAnimation(const aiNodeAnim* channel)
 {
 	if (!channel)
 		return;
@@ -37,18 +61,6 @@ Bone::Bone(const std::string& name, int ID, const aiNodeAnim* channel)
 		data.timeStamp = timeStamp;
 		scales.push_back(data);
 	}
-}
-
-void Bone::update(float delta)
-{
-	int frameIndex = getKeyFrameIndex(delta);
-	float factor = getFactor(rotations[frameIndex].timeStamp,
-		rotations[frameIndex + 1].timeStamp, delta);
-
-	glm::mat4 translation = interpolatePosition(frameIndex, factor);
-	glm::mat4 rotation = interpolateRotation(frameIndex, factor);
-	glm::mat4 scale = interpolateScaling(frameIndex, factor);
-	localTransform = translation * rotation * scale;
 }
 
 int Bone::getKeyFrameIndex(float delta)

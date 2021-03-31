@@ -5,30 +5,39 @@ Skeleton::Skeleton()
 {
 }
 
-void Skeleton::readBones(aiMesh* mesh, aiNode* node, aiAnimation* animation)
+void Skeleton::readBones(aiMesh* mesh)
 {
-	if (animation)
-	{
-		ticksPerSecond = (float)animation->mTicksPerSecond;
-		durationInTicks = (float)animation->mDuration;
-	}
-
 	for (unsigned int i = 0; i < mesh->mNumBones; i++)
 	{
 		aiBone* boneData = mesh->mBones[i];
 		std::string name = boneData->mName.C_Str();
-		aiNodeAnim* ani = findNodeAnim(animation, name);
-		Bone* bone = new Bone(name, i, ani);
+		Bone* bone = new Bone(name, i);
 		boneName2Index.insert(std::pair <std::string, unsigned int>(name, i));
 		bone->offset = assimpToGlmMatrix(boneData->mOffsetMatrix);
 		bones.push_back(bone);
 	}
-	globalTransform = assimpToGlmMatrix(node->mTransformation);
-	rootBone = createBoneHierarchy(node, aiMatrix4x4());
 	boneTransforms.resize(bones.size());
 	modelTransforms.resize(bones.size());
+}
 
-	//connectBones(rootBone);
+void Skeleton::setRootInfo(aiNode* rootNode)
+{
+	globalTransform = assimpToGlmMatrix(rootNode->mTransformation);
+	rootBone = createBoneHierarchy(rootNode, aiMatrix4x4());
+}
+
+void Skeleton::setAnimation(aiAnimation* animation)
+{
+	if (!animation)
+		return;
+	ticksPerSecond = (float)animation->mTicksPerSecond;
+	durationInTicks = (float)animation->mDuration;
+	for (unsigned int i = 0; i < bones.size(); i++)
+	{
+		Bone* bone = bones[i];
+		aiNodeAnim* ani = findNodeAnim(animation, bone->name);
+		bone->setAnimation(ani);
+	}
 }
 
 void Skeleton::draw(Shader& shader)

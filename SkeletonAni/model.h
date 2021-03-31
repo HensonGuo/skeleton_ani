@@ -31,27 +31,20 @@ public:
 	Model(const string& path);
 	void loadModel(const string& path);
 	void draw(Shader &shader, DrawType drawType);
+
 	void playAnimation(bool active);
 	bool isPlayingAnimation();
-
 	float getAniDuration();
 	float getAniElapsed();
+
 	void changePoseStopAtTime(float delta);
 private:
-	void readVertices(aiMesh* aimesh);
-	void readIndices(aiMesh* aimesh);
-	void setVerticesWeights(aiMesh* aimesh);
-	void readSkeleton(const aiScene* scene, aiMesh* mesh, aiNode* node);
-	void readMaterial(aiScene const* scene, aiMaterial* material);
-	void normalizeBonesWeight();
+	void processNode(aiNode* node, const aiScene* scene);
+	void processAnimation(const aiScene* scene);
 	void showNodeName(aiNode* node);
 	
 	string directory;
-	bool onlyDrawSkeleton;
 
-	Mesh mesh;	
-	vector<Material*> materials = {};
-	vector<Vertex> vertices = {};
-	vector<uint> indices = {};
+	vector<Mesh*> meshes;
 	Skeleton* skeleton;
 };

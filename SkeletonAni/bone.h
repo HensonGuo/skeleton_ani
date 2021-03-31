@@ -48,8 +48,10 @@ public:
 	Bone* parent;
 	vector<Bone*> children = {};
 
+	Bone(const string& name, int ID);
 	Bone(const string& name, int ID, const aiNodeAnim* channel);
 	void update(float delta);
+	void setAnimation(const aiNodeAnim* channel);
 
 private:
 	int keyframeSize;

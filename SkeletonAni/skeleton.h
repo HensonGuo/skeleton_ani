@@ -27,7 +27,9 @@ public:
 	bool animationActive = false;
 
 	Skeleton();
-	void readBones(aiMesh* mesh, aiNode* node, aiAnimation* animation);
+	void readBones(aiMesh* mesh);
+	void setRootInfo(aiNode* rootNode);
+	void setAnimation(aiAnimation* animation);
 	void draw(Shader& shader);
 	void changePose(Shader& shader, DrawType drawType);
 	void keepPose(Shader& shader, DrawType drawType);
