@@ -34,7 +34,7 @@ bool firstMouse = true;
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 
-float xRotation = -90;
+float xRotation = -0;
 float yRotation = 0;
 
 static bool drawModel = true;
@@ -76,6 +76,9 @@ int main(int argc, char ** argv) {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
+
+	stbi_set_flip_vertically_on_load(true);//解决图像翻转问题，不需要在片段着色器的position设置为-y
+
 	//开启深度测试
 	glEnable(GL_DEPTH_TEST);
 
@@ -98,7 +101,7 @@ int main(int argc, char ** argv) {
 	Shader skeletonShader("./../resources/shaders/lineV.txt", "./../resources/shaders/lineF.txt");
 	Shader modelShader("./../resources/shaders/vertext.txt", "./../resources/shaders/fragment.txt");
 	
-	model.loadModel("./../resources/model.dae");
+	model.loadModel("./../resources/dancing_vampire.dae");
 	model.playAnimation(false);
 
 	while (!glfwWindowShouldClose(window)) {
@@ -186,7 +189,7 @@ void updateGui()
 	if (ImGui::SliderFloat("", &animationElapsed, 0, animationDuration))
 	{
 		isRotationMode = false;
-		model.changePose(animationElapsed);
+		model.changePoseStopAtTime(animationElapsed);
 	}
 
 	ImGui::SameLine();

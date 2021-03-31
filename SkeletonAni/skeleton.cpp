@@ -64,9 +64,7 @@ void Skeleton::keepPose(Shader& shader, DrawType drawType)
 void Skeleton::reCalculateTransform(float elapsed)
 {
 	ticksElapsed = elapsed;
-	animationActive = true;
 	calculateBoneTransform(rootBone, globalTransform, elapsed);
-	animationActive = false;
 }
 
 void Skeleton::applyPose(Shader& shader, DrawType drawType)

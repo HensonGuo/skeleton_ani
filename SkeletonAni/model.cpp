@@ -66,6 +66,7 @@ void Model::draw(Shader& shader, DrawType drawType)
 void Model::playAnimation(bool active)
 {
 	this->skeleton->animationActive = active;
+	this->skeleton->reCalculateTransform(0);
 }
 
 bool Model::isPlayingAnimation()
@@ -83,9 +84,11 @@ float Model::getAniElapsed()
 	return this->skeleton->ticksElapsed;
 }
 
-void Model::changePose(float delta)
+void Model::changePoseStopAtTime(float delta)
 {
+	this->skeleton->animationActive = true;
 	this->skeleton->reCalculateTransform(delta);
+	this->skeleton->animationActive = false;
 }
 
 

@@ -36,7 +36,7 @@ public:
 
 	float getAniDuration();
 	float getAniElapsed();
-	void changePose(float delta);
+	void changePoseStopAtTime(float delta);
 private:
 	void readVertices(aiMesh* aimesh);
 	void readIndices(aiMesh* aimesh);
