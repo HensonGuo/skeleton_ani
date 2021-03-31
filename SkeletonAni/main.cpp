@@ -26,7 +26,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 void updateGui();
 
-Camera camera(glm::vec3(0.0f, 5.0f, 30.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = windowWidth / 2.0f;
 float lastY = windowHeight / 2.0f;
 bool firstMouse = true;
@@ -77,8 +77,6 @@ int main(int argc, char ** argv) {
 		return -1;
 	}
 
-	stbi_set_flip_vertically_on_load(true);//解决图像翻转问题，不需要在片段着色器的position设置为-y
-
 	//开启深度测试
 	glEnable(GL_DEPTH_TEST);
 
@@ -123,10 +121,12 @@ int main(int argc, char ** argv) {
 		processInput(window);		
 		
 		glm::mat4 modelTrans = glm::mat4(1.0);
+		modelTrans = glm::translate(modelTrans, glm::vec3(0.0f, -0.4f, 0.0f));
+		modelTrans = glm::scale(modelTrans, glm::vec3(.5f, .5f, .5f));
 		modelTrans = glm::rotate(modelTrans, glm::radians(yRotation), glm::vec3(0.0, 1.0, 0.0));
 		modelTrans = glm::rotate(modelTrans, glm::radians(xRotation), glm::vec3(1.0, 0.0, 0.0));
 		glm::mat4 viewTrans = camera.GetViewMatrix();
-		glm::mat4 projectionTrans = glm::perspective(glm::radians(camera.Zoom), (float)windowWidth / (float)windowHeight, 0.1f, 200.0f);
+		glm::mat4 projectionTrans = glm::perspective(glm::radians(camera.Zoom), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
 
 		if (drawMesh)
 		{
