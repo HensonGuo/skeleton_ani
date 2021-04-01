@@ -99,7 +99,7 @@ int main(int argc, char ** argv) {
 	Shader skeletonShader("./../resources/shaders/lineV.txt", "./../resources/shaders/lineF.txt");
 	Shader modelShader("./../resources/shaders/vertext.txt", "./../resources/shaders/fragment.txt");
 	
-	model.loadModel("./../resources/dancing_vampire.dae");
+	model.loadModel("./../resources/Capoeira.dae");
 	model.playAnimation(false);
 
 	while (!glfwWindowShouldClose(window)) {

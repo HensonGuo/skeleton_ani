@@ -94,19 +94,19 @@ void Mesh::setVerticesWeights(aiMesh* aimesh, Skeleton* skeleton)
 			boneCounts[id]++;
 			switch (boneCounts[id]) {
 			case 1:
-				vertices[id].boneIds.x = i;
+				vertices[id].boneIds.x = boneId;
 				vertices[id].boneWeights.x = weight;
 				break;
 			case 2:
-				vertices[id].boneIds.y = i;
+				vertices[id].boneIds.y = boneId;
 				vertices[id].boneWeights.y = weight;
 				break;
 			case 3:
-				vertices[id].boneIds.z = i;
+				vertices[id].boneIds.z = boneId;
 				vertices[id].boneWeights.z = weight;
 				break;
 			case 4:
-				vertices[id].boneIds.w = i;
+				vertices[id].boneIds.w = boneId;
 				vertices[id].boneWeights.w = weight;
 				break;
 			}
