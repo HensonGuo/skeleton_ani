@@ -151,7 +151,7 @@ void Skeleton::calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, flo
 {
 	std::string nodeName = bone->name;
 	glm::mat4 nodeTransform = bone->localTransform;
-	if (animationActive)
+	if (bone->hasAnimaiton())
 	{
 		bone->update(delta);
 		nodeTransform = bone->localTransform;

@@ -52,17 +52,22 @@ public:
 	Bone(const string& name, int ID, const aiNodeAnim* channel);
 	void update(float delta);
 	void setAnimation(const aiNodeAnim* channel);
+	bool hasAnimaiton();
 
 private:
-	int keyframeSize;
+	int numPostions;
+	int numRotations;
+	int numScales;
 	vector<PositionKeyframe> positions;
 	vector<RotationKeyframe> rotations;
 	vector<ScaleKeyframe> scales;
 
-	int getKeyFrameIndex(float delta);
+	int getPositionFrameIndex(float delta);
+	int getRotationFrameIndex(float delta);
+	int getScaleFrameIndex(float delta);
 	float getFactor(float lastFrameStamp, float nextFrameStamp, float delta);
 	//插值计算位移、旋转、缩放
-	mat4 interpolatePosition(int frameIndex, float factor);
-	mat4 interpolateRotation(int frameIndex, float factor);
-	mat4 interpolateScaling(int frameIndex, float factor);
+	mat4 interpolatePosition(float delta);
+	mat4 interpolateRotation(float delta);
+	mat4 interpolateScaling(float delta);
 };
