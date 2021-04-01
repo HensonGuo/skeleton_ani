@@ -19,10 +19,10 @@ struct Texture
 	aiString path;
 };
 
+static vector<Texture> textures;
 
 class Material {
 public:
-	vector<Texture> textures;
 	Material(aiScene const* scene, aiMaterial* mat, aiTextureType type, string type_name, const string directory);
 	GLuint loadImage(const char* imagePath);
 	GLuint loadImageFromMemory(const aiTexture* texture);

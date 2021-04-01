@@ -60,9 +60,6 @@ GLuint Material::loadImage(const char* imagePath)
 
 GLuint Material::loadImageFromMemory(const aiTexture* texture)
 {
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-
 	int width, height, nrComponents;
 
 	unsigned char* data;
@@ -83,7 +80,7 @@ void Material::draw(Shader& shader)
 	int specularIndex = 1;
 
 	for (int i = 0; i < textures.size(); i++) {
-		glActiveTexture(GL_TEXTURE0 + i);
+		glActiveTexture(textures[i].id);
 
 		string number;
 		string name = textures[i].type.C_Str();
@@ -103,7 +100,7 @@ void Material::draw(Shader& shader)
 void Material::reset()
 {
 	for (int i = 0; i < textures.size(); i++) {
-		glActiveTexture(GL_TEXTURE0 + i);
+		glActiveTexture(textures[i].id);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }

@@ -72,9 +72,9 @@ void Mesh::readMaterials(aiScene const* scene, aiMesh* aimesh, string& directory
 	//Âş·´ÉäÌùÍ¼
 	Material* diffuseMaterial = new Material(scene, material, aiTextureType_DIFFUSE, "diffuse", directory);
 	materials.push_back(diffuseMaterial);
-	//¸ß¹âÌùÍ¼
-	Material* specularMaterial = new Material(scene, material, aiTextureType_SPECULAR, "specular", directory);
-	materials.push_back(specularMaterial);
+	//¾µÃæÌùÍ¼
+// 	Material* specularMaterial = new Material(scene, material, aiTextureType_SPECULAR, "specular", directory);
+// 	materials.push_back(specularMaterial);
 }
 
 void Mesh::setVerticesWeights(aiMesh* aimesh, Skeleton* skeleton)
