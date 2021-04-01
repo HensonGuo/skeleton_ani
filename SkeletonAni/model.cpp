@@ -82,9 +82,8 @@ float Model::getAniElapsed()
 
 void Model::changePoseStopAtTime(float delta)
 {
-	this->skeleton->animationActive = true;
+	this->playAnimation(false);
 	this->skeleton->reCalculateTransform(delta);
-	this->skeleton->animationActive = false;
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)
