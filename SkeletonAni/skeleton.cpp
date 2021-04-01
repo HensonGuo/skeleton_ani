@@ -11,6 +11,8 @@ void Skeleton::readBones(aiMesh* mesh)
 	{
 		aiBone* boneData = mesh->mBones[i];
 		std::string name = boneData->mName.C_Str();
+		if (boneName2Index.find(name) != boneName2Index.end())
+			continue;
 		Bone* bone = new Bone(name, boneCount);
 		boneName2Index.insert(std::pair <std::string, unsigned int>(name, boneCount));
 		bone->offset = assimpToGlmMatrix(boneData->mOffsetMatrix);
