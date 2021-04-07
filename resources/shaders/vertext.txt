@@ -9,7 +9,7 @@ out vec2 tex_cord;
 out vec3 v_normal;
 out vec3 v_pos;
 
-uniform mat4 bone_transforms[50];
+uniform mat4 bone_transforms[100];
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
