@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <cstdlib>
+#include <windows.h>
 #include "shader.h"
 #include "model.h"
 #define STB_IMAGE_IMPLEMENTATION
@@ -9,6 +10,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+
 
 const int windowWidth = 800;
 const int windowHeight = 600;
@@ -34,6 +36,7 @@ bool firstMouse = true;
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 float fps;
+const float MAX_FPS = 60.0f;
 
 float xRotation = 0;
 float yRotation = 0;
@@ -114,12 +117,6 @@ int main(int argc, char ** argv) {
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		// 帧时间差
-		float currentFrame = glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
-		fps = 1000 / deltaTime;
-
 		// 输入
 		processInput(window);		
 		
@@ -171,6 +168,17 @@ int main(int argc, char ** argv) {
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+		// 帧时间差
+		float currentFrame = glfwGetTime() * 1000;
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+		float frameTime = 1.0 / MAX_FPS * 1000;
+		float sleepTime = frameTime - deltaTime;
+		if (sleepTime < 0)
+			sleepTime = 0;
+		fps = 1000 / deltaTime;
+		Sleep(sleepTime);
 	}
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
