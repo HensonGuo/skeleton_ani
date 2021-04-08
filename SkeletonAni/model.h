@@ -29,7 +29,9 @@ class Model
 public:
 	Model();
 	Model(const string& path);
+	void clear();
 	void loadModel(const string& path);
+	void loadAnimation(const string& path);
 	void draw(Shader &shader, DrawType drawType);
 
 	void playAnimation(bool active);

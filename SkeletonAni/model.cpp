@@ -9,6 +9,12 @@ Model::Model(const string& path)
 	this->loadModel(path);
 }
 
+void Model::clear()
+{
+	this->skeleton = nullptr;
+	this->meshes.clear();
+}
+
 void Model::loadModel(const string& path)
 {
 	this->skeleton = new Skeleton();
@@ -38,6 +44,15 @@ void Model::loadModel(const string& path)
 	processNode(rootNode, scene);
 	processAnimation(scene);
 	skeleton->setRootInfo(rootNode);
+}
+
+void Model::loadAnimation(const string& path)
+{
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
+	assert(scene && scene->mRootNode);
+	auto animation = scene->mAnimations[0];
+	this->skeleton->setAnimation(animation);
 }
 
 void Model::draw(Shader& shader, DrawType drawType)

@@ -53,6 +53,7 @@ public:
 	void update(float delta);
 	void setAnimation(const aiNodeAnim* channel);
 	bool hasAnimaiton();
+	void clear();
 
 private:
 	int numPostions;

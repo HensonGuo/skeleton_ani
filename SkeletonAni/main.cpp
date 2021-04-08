@@ -99,7 +99,7 @@ int main(int argc, char ** argv) {
 	Shader skeletonShader("./../resources/shaders/lineV.txt", "./../resources/shaders/lineF.txt");
 	Shader modelShader("./../resources/shaders/vertext.txt", "./../resources/shaders/fragment.txt");
 	
-	model.loadModel("./../resources/Capoeira.dae");
+	model.loadModel("./../resources/model1.dae");
 	model.playAnimation(false);
 
 	while (!glfwWindowShouldClose(window)) {
@@ -177,14 +177,54 @@ int main(int argc, char ** argv) {
 }
 
 
+
+int checkModel = 0;
+int checkMotion = 0;
 void updateGui()
 {
 	ImGui::Begin("Demo");
+	ImGui::SetWindowSize(ImVec2(260, 300));
+	/*ImGui::SetWindowPos(ImVec2(10, 10));*/
+	ImGui::Text(u8"ÇÐ»»Ä£ÐÍ");
+	if (ImGui::RadioButton("model1", &checkModel, 0))
+	{
+		model.clear();
+		model.loadModel("./../resources/model1.dae");
+		model.playAnimation(false);
+		checkMotion = 0;
+	}
+	else if (ImGui::RadioButton("model2", &checkModel, 1))
+	{
+		model.clear();
+		model.loadModel("./../resources/model2.dae");
+		model.playAnimation(false);
+		checkMotion = 0;
+	}
+
+	ImGui::NewLine();
 	ImGui::Text(u8"äÖÈ¾");
 	ImGui::Checkbox(u8"Ä£ÐÍ", &drawModel);ImGui::SameLine();
 	ImGui::Checkbox(u8"Íø¸ñ", &drawMesh);ImGui::SameLine();
 	ImGui::Checkbox(u8"¹Ç÷À", &drawSkeleton);
+
+	ImGui::NewLine();
 	ImGui::Text(u8"¶¯»­");
+	if (ImGui::RadioButton(u8"ÌøÎè", &checkMotion, 0))
+	{
+		model.loadAnimation("./../resources/Dancing.dae");
+	}
+	else if (ImGui::RadioButton(u8"¹¥»÷", &checkMotion, 1))
+	{
+		model.loadAnimation("./../resources/Boxing.dae");
+	}
+	else if (ImGui::RadioButton(u8"ÐÐ×ß", &checkMotion, 2))
+	{
+		model.loadAnimation("./../resources/Walk.dae");
+	}
+	else if (ImGui::RadioButton(u8"ÌßÍÈ", &checkMotion, 3))
+	{
+		model.loadAnimation("./../resources/Kick.dae");
+	}
 
 	if (ImGui::SliderFloat("", &animationElapsed, 0, animationDuration))
 	{

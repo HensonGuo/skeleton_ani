@@ -39,6 +39,7 @@ void Skeleton::setAnimation(aiAnimation* animation)
 	{
 		Bone* bone = bones[i];
 		aiNodeAnim* ani = findNodeAnim(animation, bone->name);
+		bone->clear();
 		bone->setAnimation(ani);
 	}
 }

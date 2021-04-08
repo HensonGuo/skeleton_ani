@@ -66,6 +66,16 @@ bool Bone::hasAnimaiton()
 	return numPostions > 0 || numRotations > 0 || numScales > 0;
 }
 
+void Bone::clear()
+{
+	positions.clear();
+	rotations.clear();
+	scales.clear();
+	numRotations = 0;
+	numPostions = 0;
+	numScales = 0;
+}
+
 int Bone::getPositionFrameIndex(float delta)
 {
 	for (int index = 0; index < numPostions - 1; ++index)
