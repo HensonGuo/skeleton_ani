@@ -33,6 +33,7 @@ bool firstMouse = true;
 
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
+float fps;
 
 float xRotation = 0;
 float yRotation = 0;
@@ -117,6 +118,7 @@ int main(int argc, char ** argv) {
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+		fps = 1000 / deltaTime;
 
 		// 输入
 		processInput(window);		
@@ -185,7 +187,7 @@ int checkMotion = -1;
 void updateGui()
 {
 	ImGui::Begin("Demo");
-	ImGui::SetWindowSize(ImVec2(260, 400));
+	ImGui::SetWindowSize(ImVec2(260, 408));
 	/*ImGui::SetWindowPos(ImVec2(10, 10));*/
 	ImGui::Text(u8"切换模型");
 	if (ImGui::RadioButton("model1", &checkModel, 0))
@@ -258,6 +260,9 @@ void updateGui()
 			model.playAnimation(true);
 		}
 	}
+
+	ImGui::NewLine();
+	ImGui::Text(u8"FPS:%f", fps);
 	ImGui::End();
 }
 
