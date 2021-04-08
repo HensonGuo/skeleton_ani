@@ -27,6 +27,7 @@ class Mesh
 {
 public:
 	Mesh();
+	~Mesh();
 	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Material*> &materials);
 
 	void draw(Shader& shader);

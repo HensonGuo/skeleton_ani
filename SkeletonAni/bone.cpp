@@ -18,6 +18,10 @@ Bone::Bone(const std::string& name, int ID, const aiNodeAnim* channel)
 Bone::~Bone()
 {
 	parent = NULL;
+	for (auto it = children.begin(); it != children.end(); it++)
+	{
+		*it = NULL;
+	}
 	children.clear();
 }
 

@@ -4,6 +4,16 @@ Mesh::Mesh()
 {
 }
 
+Mesh::~Mesh()
+{
+	for (auto it = materials.begin(); it != materials.end(); it++)
+	{
+		delete* it;
+		*it = NULL;
+	}
+	materials.clear();
+}
+
 Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Material*> &materials)
 {
 	this->vertices = vertices;
