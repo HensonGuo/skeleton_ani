@@ -16,17 +16,19 @@ Material::Material(aiScene const* scene, aiMaterial* mat, aiTextureType type, st
 
 		// 检查之前是否加载了纹理，如果是，则继续下一次迭代：跳过加载新纹理
 		bool loaded = false;
-		for (unsigned int j = 0; j < textures.size(); j++)
+		Texture texture;
+		for (unsigned int j = 0; j < texturesLoaded.size(); j++)
 		{
-			if (textures[j].path.C_Str() == filename)
+			if (texturesLoaded[j].path.C_Str() == filename)
 			{
+				texture = texturesLoaded[j];
 				loaded = true;
 				break;// 已加载具有相同文件路径的纹理，继续下一个（优化）。
 			}
 		}
 		if (!loaded)
 		{
-			Texture texture;
+			
 			texture.type = typeName;
 			if (aitexture)
 			{
@@ -37,8 +39,9 @@ Material::Material(aiScene const* scene, aiMaterial* mat, aiTextureType type, st
 				texture.id = loadImage(filename.c_str());
 			}
 			texture.path = filename;
-			textures.push_back(texture);
+			texturesLoaded.push_back(texture);
 		}
+		textures.push_back(texture);
 	}
 }
 

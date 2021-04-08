@@ -19,7 +19,7 @@ struct Texture
 	aiString path;
 };
 
-static vector<Texture> textures;
+static vector<Texture> texturesLoaded;
 
 class Material {
 public:
@@ -30,4 +30,5 @@ public:
 	void reset();
 private:
 	GLuint bind(unsigned char* data, int width, int height, int comp);
+	vector<Texture> textures;
 };
