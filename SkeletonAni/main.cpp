@@ -34,8 +34,9 @@ bool firstMouse = true;
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 
-float xRotation = -0;
+float xRotation = 0;
 float yRotation = 0;
+float zRotation = 0;
 
 static bool drawModel = true;
 static bool drawMesh = false;
@@ -125,6 +126,7 @@ int main(int argc, char ** argv) {
 		modelTrans = glm::scale(modelTrans, glm::vec3(.5f, .5f, .5f));
 		modelTrans = glm::rotate(modelTrans, glm::radians(yRotation), glm::vec3(0.0, 1.0, 0.0));
 		modelTrans = glm::rotate(modelTrans, glm::radians(xRotation), glm::vec3(1.0, 0.0, 0.0));
+		modelTrans = glm::rotate(modelTrans, glm::radians(zRotation), glm::vec3(0.0, 0.0, 1.0));
 		glm::mat4 viewTrans = camera.GetViewMatrix();
 		glm::mat4 projectionTrans = glm::perspective(glm::radians(camera.Zoom), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
 
@@ -179,11 +181,11 @@ int main(int argc, char ** argv) {
 
 
 int checkModel = 0;
-int checkMotion = 0;
+int checkMotion = -1;
 void updateGui()
 {
 	ImGui::Begin("Demo");
-	ImGui::SetWindowSize(ImVec2(260, 300));
+	ImGui::SetWindowSize(ImVec2(260, 400));
 	/*ImGui::SetWindowPos(ImVec2(10, 10));*/
 	ImGui::Text(u8"切换模型");
 	if (ImGui::RadioButton("model1", &checkModel, 0))
@@ -191,15 +193,20 @@ void updateGui()
 		model.clear();
 		model.loadModel("./../resources/model1.dae");
 		model.playAnimation(false);
-		checkMotion = 0;
+		checkMotion = -1;
 	}
 	else if (ImGui::RadioButton("model2", &checkModel, 1))
 	{
 		model.clear();
 		model.loadModel("./../resources/model2.dae");
 		model.playAnimation(false);
-		checkMotion = 0;
+		checkMotion = -1;
 	}
+
+	ImGui::SliderFloat(u8"x轴旋转", &xRotation, 0, 360);
+	ImGui::SliderFloat(u8"y轴旋转", &yRotation, 0, 360);
+	ImGui::SliderFloat(u8"z轴旋转", &zRotation, 0, 360);
+	ImGui::SliderFloat(u8"透视缩放", &camera.Zoom, 0, 450);
 
 	ImGui::NewLine();
 	ImGui::Text(u8"渲染");
@@ -212,18 +219,22 @@ void updateGui()
 	if (ImGui::RadioButton(u8"跳舞", &checkMotion, 0))
 	{
 		model.loadAnimation("./../resources/Dancing.dae");
+		model.playAnimation(true);
 	}
 	else if (ImGui::RadioButton(u8"攻击", &checkMotion, 1))
 	{
 		model.loadAnimation("./../resources/Boxing.dae");
+		model.playAnimation(true);
 	}
 	else if (ImGui::RadioButton(u8"行走", &checkMotion, 2))
 	{
 		model.loadAnimation("./../resources/Walk.dae");
+		model.playAnimation(true);
 	}
 	else if (ImGui::RadioButton(u8"踢腿", &checkMotion, 3))
 	{
 		model.loadAnimation("./../resources/Kick.dae");
+		model.playAnimation(true);
 	}
 
 	if (ImGui::SliderFloat("", &animationElapsed, 0, animationDuration))
@@ -313,11 +324,11 @@ void cursor_callback(GLFWwindow* window, double xpos, double ypos)
 // 		else if (xRotation < -90)
 // 			xRotation = -90;
 
-		yRotation = xpos - viewportWidth / 2;
-		if (yRotation > 180)
-			yRotation = 180;
-		else if (yRotation < -180)
-			yRotation = -180;
+// 		yRotation = xpos - viewportWidth / 2;
+// 		if (yRotation > 180)
+// 			yRotation = 180;
+// 		else if (yRotation < -180)
+// 			yRotation = -180;
 	}
 
 	//camera.ProcessMouseMovement(xoffset, yoffset);
