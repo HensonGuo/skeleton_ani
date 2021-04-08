@@ -27,7 +27,9 @@ public:
 	float ticksElapsed;
 	bool animationActive = false;
 
+
 	Skeleton();
+	~Skeleton();
 	void readBones(aiMesh* mesh);
 	void setRootInfo(aiNode* rootNode);
 	void setAnimation(aiAnimation* animation);

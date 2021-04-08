@@ -11,7 +11,13 @@ Model::Model(const string& path)
 
 void Model::clear()
 {
-	this->skeleton = nullptr;
+	delete this->skeleton;
+	this->skeleton = NULL;
+	for (auto it = meshes.begin(); it != meshes.end(); it++)
+	{
+		delete* it;
+		*it = NULL;
+	}
 	this->meshes.clear();
 }
 

@@ -15,6 +15,12 @@ Bone::Bone(const std::string& name, int ID, const aiNodeAnim* channel)
 	setAnimation(channel);
 }
 
+Bone::~Bone()
+{
+	parent = NULL;
+	children.clear();
+}
+
 void Bone::update(float delta)
 {
 	glm::mat4 translation = interpolatePosition(delta);

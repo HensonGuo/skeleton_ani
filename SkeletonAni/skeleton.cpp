@@ -5,6 +5,18 @@ Skeleton::Skeleton()
 {
 }
 
+Skeleton::~Skeleton()
+{
+	for (auto it = bones.begin(); it != bones.end(); it++)
+	{
+		delete *it;
+		if (*it == rootBone)
+			rootBone = NULL;
+		*it = NULL;
+	}
+	bones.clear();
+}
+
 void Skeleton::readBones(aiMesh* mesh)
 {
 	for (unsigned int i = 0; i < mesh->mNumBones; i++)
