@@ -31,8 +31,8 @@ void Skeleton::readBones(aiMesh* mesh)
 		bones.push_back(bone);
 		boneCount++;
 	}
+	bone2MeshTransforms.resize(bones.size());
 	boneTransforms.resize(bones.size());
-	modelTransforms.resize(bones.size());
 }
 
 void Skeleton::setRootInfo(aiNode* rootNode)
@@ -58,13 +58,13 @@ void Skeleton::setAnimation(aiAnimation* animation)
 
 void Skeleton::draw(Shader& shader)
 {
-	transformLineDrawer.clear();
+	transformPoseLineDrawer.clear();
 	updateTransformDrawer(rootBone, mat4(1.0f));
-	transformLineDrawer.setLineWidth(5);
- 	transformLineDrawer.draw(shader);
+	transformPoseLineDrawer.setLineWidth(5);
+ 	transformPoseLineDrawer.draw(shader);
 
-// 	skeletonLineDrawer.setLineWidth(6);
-// 	skeletonLineDrawer.draw(shader);
+// 	bindPoseLineDrawer.setLineWidth(6);
+// 	bindPoseLineDrawer.draw(shader);
 }
 
 void Skeleton::changePose(Shader& shader, DrawType drawType)
@@ -96,13 +96,13 @@ void Skeleton::applyPose(Shader& shader, DrawType drawType)
 {
 	if (drawType == DRAW_ENTITY)
 	{
-		glm::mat4* ptr = boneTransforms.data();
-		shader.setMat4("bone_transforms", bones.size(), boneTransforms[0]);
+		glm::mat4* ptr = bone2MeshTransforms.data();
+		shader.setMat4("bone_transforms", bones.size(), bone2MeshTransforms[0]);
 	}
 	else if (drawType == DRAW_SKELETON)
 	{
-		glm::mat4* ptr = modelTransforms.data();
-		shader.setMat4("bone_transforms", bones.size(), modelTransforms[0]);
+		glm::mat4* ptr = boneTransforms.data();
+		shader.setMat4("bone_transforms", bones.size(), boneTransforms[0]);
 	}
 }
 
@@ -171,10 +171,10 @@ void Skeleton::calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, flo
 	}
 
 	glm::mat4 finalTransformation = parentTransform * nodeTransform;
-	boneTransforms[bone->id] = finalTransformation * bone->offset;
-
-	//不计算offset即是模型空间，*offset即转换到骨骼空间
-	modelTransforms[bone->id] = finalTransformation;
+	//骨骼空间
+	boneTransforms[bone->id] = finalTransformation;
+	//乘以offset逆矩阵变换到网格空间
+	bone2MeshTransforms[bone->id] = finalTransformation * bone->offset;
 
 	for (int i = 0; i < bone->children.size(); i++)
 		calculateBoneTransform(bone->children[i], finalTransformation, delta);
@@ -200,10 +200,10 @@ void Skeleton::updateTransformDrawer(Bone* bone, mat4 currentTransform)
 		const Bone* parent = bone->parent;
 		if (parent)
 		{
-			vec3 start = currentTransform * modelTransforms[bone->id] * vec4(0, 0, 0, 1);
-			vec3 end = currentTransform * modelTransforms[parent->id] * vec4(0, 0, 0, 1);
+			vec3 start = currentTransform * boneTransforms[bone->id] * vec4(0, 0, 0, 1);
+			vec3 end = currentTransform * boneTransforms[parent->id] * vec4(0, 0, 0, 1);
 			vec4 color = BoneColor;
-			transformLineDrawer.addBoneLine(start, bone->id, end, parent->id, color);
+			transformPoseLineDrawer.addBoneLine(start, bone->id, end, parent->id, color);
 		}
 	}
 }
@@ -215,7 +215,7 @@ void Skeleton::connectBones(Bone* bone)
 		uint startBoneId = boneName2Index.at(bone->name);
 		uint endBoneId = boneName2Index.at(parent->name);
 
-		skeletonLineDrawer.addBoneLine(bone->position, bone->id, parent->position, parent->id, vec4(0, 0, 1, 1));
+		bindPoseLineDrawer.addBoneLine(bone->position, bone->id, parent->position, parent->id, vec4(0, 0, 1, 1));
 	}
 
 	for (auto it = bone->children.begin(); it != bone->children.end(); ++it) {

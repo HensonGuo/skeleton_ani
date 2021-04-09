@@ -15,8 +15,8 @@ class Skeleton {
 public:
 	Bone* rootBone;
 	std::vector<Bone*> bones;
+	std::vector<glm::mat4> bone2MeshTransforms;
 	std::vector<glm::mat4> boneTransforms;
-	std::vector<glm::mat4> modelTransforms;
 	std::map<std::string, unsigned int> boneName2Index;
 	glm::mat4 globalTransform;
 	int boneCount = 0;
@@ -43,9 +43,9 @@ private:
 	void calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, float delta);
 	aiNodeAnim* findNodeAnim(const aiAnimation* ani, const std::string& nodeName);
 
-	LineDrawer transformLineDrawer;
+	LineDrawer transformPoseLineDrawer;
 	void updateTransformDrawer(Bone* bone, mat4 currentTransform);
 
-	LineDrawer skeletonLineDrawer;
+	LineDrawer bindPoseLineDrawer;
 	void connectBones(Bone* bone);
 };
