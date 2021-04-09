@@ -195,7 +195,7 @@ int checkMotion = -1;
 void updateGui()
 {
 	ImGui::Begin("Demo");
-	ImGui::SetWindowSize(ImVec2(260, 408));
+	ImGui::SetWindowSize(ImVec2(260, 424));
 	/*ImGui::SetWindowPos(ImVec2(10, 10));*/
 	ImGui::Text(u8"切换模型");
 	if (ImGui::RadioButton("model1", &checkModel, 0))
@@ -213,6 +213,11 @@ void updateGui()
 		checkMotion = -1;
 	}
 
+	ImGui::NewLine();
+	ImGui::Text(u8"顶点数:%d", model.getVertexCount());ImGui::SameLine();
+	ImGui::Text(u8"骨骼数:%d", model.getBonesCount());
+
+	ImGui::NewLine();
 	ImGui::SliderFloat(u8"x轴旋转", &xRotation, 0, 360);
 	ImGui::SliderFloat(u8"y轴旋转", &yRotation, 0, 360);
 	ImGui::SliderFloat(u8"z轴旋转", &zRotation, 0, 360);
@@ -231,22 +236,25 @@ void updateGui()
 		model.loadAnimation("./../resources/Dancing.dae");
 		model.playAnimation(true);
 	}
-	else if (ImGui::RadioButton(u8"攻击", &checkMotion, 1))
+	ImGui::SameLine();
+	if (ImGui::RadioButton(u8"攻击", &checkMotion, 1))
 	{
 		model.loadAnimation("./../resources/Boxing.dae");
 		model.playAnimation(true);
 	}
-	else if (ImGui::RadioButton(u8"行走", &checkMotion, 2))
+	if (ImGui::RadioButton(u8"行走", &checkMotion, 2))
 	{
 		model.loadAnimation("./../resources/Walk.dae");
 		model.playAnimation(true);
 	}
-	else if (ImGui::RadioButton(u8"踢腿", &checkMotion, 3))
+	ImGui::SameLine();
+	if (ImGui::RadioButton(u8"踢腿", &checkMotion, 3))
 	{
 		model.loadAnimation("./../resources/Kick.dae");
 		model.playAnimation(true);
 	}
 
+	ImGui::NewLine();
 	if (ImGui::SliderFloat("", &animationElapsed, 0, animationDuration))
 	{
 		isRotationMode = false;

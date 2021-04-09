@@ -40,6 +40,9 @@ public:
 	float getAniElapsed();
 
 	void changePoseStopAtTime(float delta);
+
+	uint getBonesCount();
+	uint getVertexCount();
 private:
 	void processNode(aiNode* node, const aiScene* scene);
 	void processAnimation(const aiScene* scene);
@@ -47,6 +50,7 @@ private:
 	
 	string directory;
 
+	uint vertexCount;
 	vector<Mesh*> meshes;
 	Skeleton* skeleton;
 };

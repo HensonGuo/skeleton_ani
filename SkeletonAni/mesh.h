@@ -37,6 +37,8 @@ public:
 	void setVerticesWeights(aiMesh* aimesh, Skeleton* skeleton);
 	void normalizeBonesWeight();
 	void setup();
+
+	uint getVertextCount();
 private:
 	//Mesh data
 	vector<Vertex> vertices;

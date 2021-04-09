@@ -107,8 +107,19 @@ void Model::changePoseStopAtTime(float delta)
 	this->skeleton->reCalculateTransform(delta);
 }
 
+uint Model::getBonesCount()
+{
+	return this->skeleton->boneCount;
+}
+
+uint Model::getVertexCount()
+{
+	return this->vertexCount;
+}
+
 void Model::processNode(aiNode* node, const aiScene* scene)
 {
+	vertexCount = 0;
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
 		//节点对象仅包含索引以索引场景中的实际对象。
@@ -123,6 +134,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 		mesh->normalizeBonesWeight();
 		mesh->setup();
 		meshes.push_back(mesh);
+		vertexCount += mesh->getVertextCount();
 	}
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
