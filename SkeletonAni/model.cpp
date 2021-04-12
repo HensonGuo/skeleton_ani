@@ -48,8 +48,8 @@ void Model::loadModel(const string& path)
 	aiNode* rootNode = scene->mRootNode;
 	showNodeName(rootNode);
 	processNode(rootNode, scene);
-	processAnimation(scene);
 	skeleton->setRootInfo(rootNode);
+	processAnimation(scene);
 }
 
 void Model::loadAnimation(const string& path)

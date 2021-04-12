@@ -33,7 +33,7 @@ void Bone::update(float delta)
 	localTransform = translation * rotation * scale;
 }
 
-void Bone::setAnimation(const aiNodeAnim* channel)
+void Bone::setAnimation(const aiNodeAnim* channel, bool align)
 {
 	if (!channel)
 		return;
@@ -45,7 +45,12 @@ void Bone::setAnimation(const aiNodeAnim* channel)
 		aiVector3D aiPosition = channel->mPositionKeys[positionIndex].mValue;
 		float timeStamp = channel->mPositionKeys[positionIndex].mTime;
 		PositionKeyframe data;
-		data.position = assimpToGlmVec3(aiPosition);
+		if (align)
+			data.position = vec3(localTransform[3][0], localTransform[3][1], localTransform[3][2]);
+		else
+		{
+			data.position = assimpToGlmVec3(aiPosition);
+		}
 		data.timeStamp = timeStamp;
 		positions.push_back(data);
 	}

@@ -52,7 +52,7 @@ public:
 	Bone(const string& name, int ID, const aiNodeAnim* channel);
 	~Bone();
 	void update(float delta);
-	void setAnimation(const aiNodeAnim* channel);
+	void setAnimation(const aiNodeAnim* channel, bool align=true);
 	bool hasAnimaiton();
 	void clear();
 
