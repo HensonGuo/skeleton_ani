@@ -68,6 +68,10 @@ GLuint Material::loadImageFromMemory(const aiTexture* texture)
 	unsigned char* data;
 	if (texture->mHeight == 0)
 	{
+		if (!strcmp(texture->achFormatHint, "jpg"))
+		{
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		}
 		data = stbi_load_from_memory(reinterpret_cast<unsigned char*>(texture->pcData), texture->mWidth, &width, &height, &nrComponents, 0);
 	}
 	else
