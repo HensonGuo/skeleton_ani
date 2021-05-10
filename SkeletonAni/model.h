@@ -47,11 +47,16 @@ private:
 	void processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentTransform);
 	void processAnimation(const aiScene* scene);
 	void showNodeName(aiNode* node);
+	void applyNodeTransform(Shader& shader);
 	
 	string directory;
 
 	uint vertexCount;
 	vector<Mesh*> meshes;
 	Skeleton* skeleton;
-	map<string, aiMatrix4x4> nodeName2LocalTransform;
+
+	std::vector<glm::mat4> nodeTransforms;
+	map<string, mat4> nodeName2LocalTransform;
+	map<uint, string> nodeIndex2Name;
+	uint nodeCount = 0;
 };

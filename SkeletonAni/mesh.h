@@ -21,6 +21,7 @@ struct Vertex {
 	vec2 texCoords;
 	uvec4 boneIds = glm::uvec4(0);
 	vec4 boneWeights = glm::vec4(-3.0f);
+	uint nodeId;
 };
 
 class Mesh
@@ -31,7 +32,7 @@ public:
 	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Material*> &materials);
 
 	void draw(Shader& shader);
-	void readVertices(aiMesh* aimesh);
+	void readVertices(aiMesh* aimesh, uint nodeId);
 	void readIndices(aiMesh* aimesh);
 	void readMaterials(aiScene const* scene, aiMesh* aimesh, string &directory);
 	void setVerticesWeights(aiMesh* aimesh, Skeleton* skeleton);

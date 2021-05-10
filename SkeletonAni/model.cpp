@@ -65,10 +65,16 @@ void Model::draw(Shader& shader, DrawType drawType)
 {
 	if (skeleton->hasBones())
 	{
+		shader.setBool("hasSkeleton", true);
 		if (skeleton->animationActive)
 			skeleton->changePose(shader, drawType);
 		else
 			skeleton->keepPose(shader, drawType);
+	}
+	else
+	{
+		shader.setBool("hasSkeleton", false);
+		this->applyNodeTransform(shader);
 	}
 	
 	if (drawType == DRAW_ENTITY)
@@ -130,7 +136,7 @@ void Model::processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentT
 		aiMesh* meshData = scene->mMeshes[node->mMeshes[i]];
 		skeleton->readBones(meshData);
 		Mesh* mesh = new Mesh();
-		mesh->readVertices(meshData);
+		mesh->readVertices(meshData, nodeCount);
 		mesh->readIndices(meshData);
 		mesh->readMaterials(scene, meshData, directory);
 		mesh->setVerticesWeights(meshData, skeleton);
@@ -140,7 +146,9 @@ void Model::processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentT
 		vertexCount += mesh->getVertextCount();
 	}
 	currentTransform = currentTransform * node->mTransformation;
-	nodeName2LocalTransform.insert(pair<string, aiMatrix4x4>(node->mName.C_Str(), currentTransform));
+	nodeName2LocalTransform.insert(pair<string, mat4>(node->mName.C_Str(), assimpToGlmMatrix(currentTransform)));
+	nodeIndex2Name.insert(pair<int, string>(nodeCount, node->mName.C_Str()));
+	nodeCount += 1;
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
 		processNode(node->mChildren[i], scene, currentTransform);
@@ -159,4 +167,17 @@ void Model::showNodeName(aiNode* node)
 	for (uint i = 0; i < node->mNumChildren; i++) {
 		showNodeName(node->mChildren[i]);
 	}
+}
+
+void Model::applyNodeTransform(Shader& shader)
+{
+	nodeTransforms.resize(nodeCount);
+	for (uint i = 0; i < nodeCount; i++)
+	{
+		uint index = i;
+		string nodeName = nodeIndex2Name.at(index);
+		mat4 trans = nodeName2LocalTransform.at(nodeName);
+		nodeTransforms[i] = trans;
+	}
+	shader.setMat4("node_transforms", nodeTransforms.size(), nodeTransforms[0]);
 }

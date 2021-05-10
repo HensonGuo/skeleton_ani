@@ -36,7 +36,7 @@ void Skeleton::readBones(aiMesh* mesh)
 	boneTransforms.resize(bones.size());
 }
 
-void Skeleton::setRootInfo(aiNode* rootNode, const map<string, aiMatrix4x4>&nodeName2LocalTransform)
+void Skeleton::setRootInfo(aiNode* rootNode, const map<string, mat4>&nodeName2LocalTransform)
 {
 	this->nodeName2LocalTransform = nodeName2LocalTransform;
 	globalTransform = assimpToGlmMatrix(rootNode->mTransformation);
@@ -124,9 +124,9 @@ Bone* Skeleton::createBoneHierarchy(aiNode* node)
 		Bone* bone = bones[id];
 		bone->localTransform = assimpToGlmMatrix(node->mTransformation);
 
-		aiMatrix4x4 currentTransform = nodeName2LocalTransform.at(node->mName.C_Str());
+		mat4 currentTransform = nodeName2LocalTransform.at(node->mName.C_Str());
 
-		bone->position = vec3(currentTransform.a4, currentTransform.b4, currentTransform.c4);
+		bone->position = currentTransform * vec4(0, 0, 0, 1);
 
 		//set parent
 		if (node->mParent == NULL)

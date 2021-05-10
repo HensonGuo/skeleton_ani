@@ -38,7 +38,7 @@ void Mesh::draw(Shader& shader)
 	glBindVertexArray(0);
 }
 
-void Mesh::readVertices(aiMesh* aimesh)
+void Mesh::readVertices(aiMesh* aimesh, uint nodeId)
 {
 	vertices.clear();
 	for (unsigned int i = 0; i < aimesh->mNumVertices; i++) {
@@ -62,6 +62,7 @@ void Mesh::readVertices(aiMesh* aimesh)
 			vec.y = aimesh->mTextureCoords[0][i].y;
 		}
 		vertex.texCoords = vec;
+		vertex.nodeId = nodeId;
 		vertices.push_back(vertex);
 	}
 }
@@ -160,6 +161,8 @@ void Mesh::setup()
 	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, boneIds));
 	glEnableVertexAttribArray(4);
 	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, boneWeights));
+	glEnableVertexAttribArray(5);
+	glVertexAttribPointer(5, 1, GL_INT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, nodeId));
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint), &indices[0], GL_STATIC_DRAW);
