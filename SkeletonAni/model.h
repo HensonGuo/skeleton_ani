@@ -44,7 +44,7 @@ public:
 	uint getBonesCount();
 	uint getVertexCount();
 private:
-	void processNode(aiNode* node, const aiScene* scene);
+	void processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentTransform);
 	void processAnimation(const aiScene* scene);
 	void showNodeName(aiNode* node);
 	
@@ -53,4 +53,5 @@ private:
 	uint vertexCount;
 	vector<Mesh*> meshes;
 	Skeleton* skeleton;
+	map<string, aiMatrix4x4> nodeName2LocalTransform;
 };

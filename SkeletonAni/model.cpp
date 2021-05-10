@@ -47,8 +47,8 @@ void Model::loadModel(const string& path)
 
 	aiNode* rootNode = scene->mRootNode;
 	showNodeName(rootNode);
-	processNode(rootNode, scene);
-	skeleton->setRootInfo(rootNode);
+	processNode(rootNode, scene, aiMatrix4x4());
+	skeleton->setRootInfo(rootNode, nodeName2LocalTransform);
 	processAnimation(scene);
 }
 
@@ -63,11 +63,14 @@ void Model::loadAnimation(const string& path)
 
 void Model::draw(Shader& shader, DrawType drawType)
 {
-	if (skeleton->animationActive)
-		skeleton->changePose(shader, drawType);
-	else
-		skeleton->keepPose(shader, drawType);
-
+	if (skeleton->hasBones())
+	{
+		if (skeleton->animationActive)
+			skeleton->changePose(shader, drawType);
+		else
+			skeleton->keepPose(shader, drawType);
+	}
+	
 	if (drawType == DRAW_ENTITY)
 	{
 		for (int i = 0; i < meshes.size(); i++)
@@ -117,7 +120,7 @@ uint Model::getVertexCount()
 	return this->vertexCount;
 }
 
-void Model::processNode(aiNode* node, const aiScene* scene)
+void Model::processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentTransform)
 {
 	vertexCount = 0;
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -136,9 +139,11 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 		meshes.push_back(mesh);
 		vertexCount += mesh->getVertextCount();
 	}
+	currentTransform = currentTransform * node->mTransformation;
+	nodeName2LocalTransform.insert(pair<string, aiMatrix4x4>(node->mName.C_Str(), currentTransform));
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
-		processNode(node->mChildren[i], scene);
+		processNode(node->mChildren[i], scene, currentTransform);
 	}
 }
 
