@@ -78,6 +78,9 @@
     <ClInclude Include="constants.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="animation.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
@@ -126,6 +129,9 @@
       <Filter>源文件\imgui</Filter>
     </ClCompile>
     <ClCompile Include="main2.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="animation.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

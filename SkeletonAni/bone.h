@@ -3,36 +3,10 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
 #include <assimp/scene.h>
 
 #include "utils.h"
-
-
-using namespace std;
-using namespace glm;
-
-
-struct PositionKeyframe
-{
-	glm::vec3 position;
-	float timeStamp;
-};
-
-struct RotationKeyframe
-{
-	glm::quat orientation;
-	float timeStamp;
-};
-
-struct ScaleKeyframe
-{
-	glm::vec3 scale;
-	float timeStamp;
-};
-
+#include "animation.h"
 
 
 // 骨骼
@@ -49,27 +23,11 @@ public:
 	vector<Bone*> children = {};
 
 	Bone(const string& name, int ID);
-	Bone(const string& name, int ID, const aiNodeAnim* channel);
 	~Bone();
 	void update(float delta);
-	void setAnimation(const aiNodeAnim* channel, bool align=true);
-	bool hasAnimaiton();
+	mat4 getTransform(float delta);
+	void setAnimation(Animation* ani, bool align=true);
 	void clear();
-
 private:
-	int numPostions;
-	int numRotations;
-	int numScales;
-	vector<PositionKeyframe> positions;
-	vector<RotationKeyframe> rotations;
-	vector<ScaleKeyframe> scales;
-
-	int getPositionFrameIndex(float delta);
-	int getRotationFrameIndex(float delta);
-	int getScaleFrameIndex(float delta);
-	float getFactor(float lastFrameStamp, float nextFrameStamp, float delta);
-	//插值计算位移、旋转、缩放
-	mat4 interpolatePosition(float delta);
-	mat4 interpolateRotation(float delta);
-	mat4 interpolateScaling(float delta);
+	Animation* ani;
 };

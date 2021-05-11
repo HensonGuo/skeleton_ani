@@ -41,18 +41,18 @@ void Skeleton::setRootInfo(aiNode* rootNode, const map<string, mat4>&nodeName2Lo
 	this->nodeName2LocalTransform = nodeName2LocalTransform;
 	globalTransform = assimpToGlmMatrix(rootNode->mTransformation);
 	rootBone = createBoneHierarchy(rootNode);
+	//connectBones(rootBone);
 }
 
 void Skeleton::setAnimation(aiAnimation* animation)
 {
 	if (!animation)
 		return;
-	ticksPerSecond = (float)animation->mTicksPerSecond;
-	durationInTicks = (float)animation->mDuration;
 	for (unsigned int i = 0; i < bones.size(); i++)
 	{
 		Bone* bone = bones[i];
-		aiNodeAnim* ani = findNodeAnim(animation, bone->name);
+		aiNodeAnim* aniNode = findNodeAnim(animation, bone->name);
+		Animation* ani = new Animation(aniNode);
 		bone->clear();
 		bone->setAnimation(ani);
 	}
@@ -69,16 +69,9 @@ void Skeleton::draw(Shader& shader)
 // 	bindPoseLineDrawer.draw(shader);
 }
 
-void Skeleton::changePose(Shader& shader, DrawType drawType)
+void Skeleton::changePose(Shader& shader, DrawType drawType, float ticksElapsed)
 {
-	if (this->startTime < 0.0f)
-	{
-		std::cout << "start time set!!!\n";
-		startTime = (float)glfwGetTime();
-	}
-
-	float timeElapsed = (float)glfwGetTime() - startTime;
-	ticksElapsed = fmod((timeElapsed * ticksPerSecond), durationInTicks);
+	cout << ticksElapsed;
 	calculateBoneTransform(rootBone, globalTransform, ticksElapsed);
 	applyPose(shader, drawType);
 }
@@ -90,7 +83,6 @@ void Skeleton::keepPose(Shader& shader, DrawType drawType)
 
 void Skeleton::reCalculateTransform(float elapsed)
 {
-	ticksElapsed = elapsed;
 	if (rootBone)
 		calculateBoneTransform(rootBone, globalTransform, elapsed);
 }
@@ -171,14 +163,7 @@ Bone* Skeleton::createBoneHierarchy(aiNode* node)
 
 void Skeleton::calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, float delta)
 {
-	std::string nodeName = bone->name;
-	glm::mat4 nodeTransform = bone->localTransform;
-	if (bone->hasAnimaiton())
-	{
-		bone->update(delta);
-		nodeTransform = bone->localTransform;
-	}
-
+	glm::mat4 nodeTransform = bone->getTransform(delta);
 	glm::mat4 finalTransformation = parentTransform * nodeTransform;
 	//¹Ç÷À¿Õ¼ä
 	boneTransforms[bone->id] = finalTransformation;

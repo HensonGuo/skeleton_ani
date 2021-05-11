@@ -49,7 +49,8 @@ void Model::loadModel(const string& path)
 	showNodeName(rootNode);
 	processNode(rootNode, scene, aiMatrix4x4());
 	skeleton->setRootInfo(rootNode, nodeName2LocalTransform);
-	processAnimation(scene);
+	if (scene->HasAnimations() == true)
+		setAnimation(scene->mAnimations[0]);
 }
 
 void Model::loadAnimation(const string& path)
@@ -58,7 +59,7 @@ void Model::loadAnimation(const string& path)
 	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
 	assert(scene && scene->mRootNode);
 	auto animation = scene->mAnimations[0];
-	this->skeleton->setAnimation(animation);
+	setAnimation(animation);
 }
 
 void Model::draw(Shader& shader, DrawType drawType)
@@ -67,7 +68,17 @@ void Model::draw(Shader& shader, DrawType drawType)
 	{
 		shader.setBool("hasSkeleton", true);
 		if (skeleton->animationActive)
-			skeleton->changePose(shader, drawType);
+		{
+			if (this->startTime < 0.0f)
+			{
+				std::cout << "start time set!!!\n";
+				startTime = (float)glfwGetTime();
+			}
+			float timeElapsed = (float)glfwGetTime() - startTime;
+			ticksElapsed = fmod((timeElapsed * ticksPerSecond), durationInTicks);
+
+			skeleton->changePose(shader, drawType, ticksElapsed);
+		}
 		else
 			skeleton->keepPose(shader, drawType);
 	}
@@ -91,6 +102,7 @@ void Model::draw(Shader& shader, DrawType drawType)
 
 void Model::playAnimation(bool active)
 {
+	this->ticksElapsed = 0;
 	this->skeleton->animationActive = active;
 	this->skeleton->reCalculateTransform(0);
 }
@@ -102,17 +114,18 @@ bool Model::isPlayingAnimation()
 
 float Model::getAniDuration()
 {
-	return this->skeleton->durationInTicks;
+	return this->durationInTicks;
 }
 
 float Model::getAniElapsed()
 {
-	return this->skeleton->ticksElapsed;
+	return this->ticksElapsed;
 }
 
 void Model::changePoseStopAtTime(float delta)
 {
 	this->playAnimation(false);
+	this->ticksElapsed = delta;
 	this->skeleton->reCalculateTransform(delta);
 }
 
@@ -155,10 +168,11 @@ void Model::processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentT
 	}
 }
 
-void Model::processAnimation(const aiScene* scene)
+void Model::setAnimation(aiAnimation* animation)
 {
-	if (scene->HasAnimations() == true)
-		skeleton->setAnimation(scene->mAnimations[0]);
+	ticksPerSecond = (float)animation->mTicksPerSecond;
+	durationInTicks = (float)animation->mDuration;
+	skeleton->setAnimation(animation);
 }
 
 void Model::showNodeName(aiNode* node)

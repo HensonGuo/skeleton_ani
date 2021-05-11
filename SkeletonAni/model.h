@@ -46,6 +46,7 @@ public:
 private:
 	void processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentTransform);
 	void processAnimation(const aiScene* scene);
+	void setAnimation(aiAnimation* animation);
 	void showNodeName(aiNode* node);
 	void applyNodeTransform(Shader& shader);
 	
@@ -54,6 +55,11 @@ private:
 	uint vertexCount;
 	vector<Mesh*> meshes;
 	Skeleton* skeleton;
+
+	float startTime = -1.0f;
+	float durationInTicks;
+	float ticksPerSecond;
+	float ticksElapsed;
 
 	std::vector<glm::mat4> nodeTransforms;
 	map<string, mat4> nodeName2LocalTransform;

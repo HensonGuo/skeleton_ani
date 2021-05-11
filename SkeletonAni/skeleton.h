@@ -5,6 +5,7 @@
 #include "shader.h"
 #include "line_drawer.h"
 #include "constants.h"
+#include "animation.h"
 
 #include <map>
 #include <GLFW/glfw3.h>
@@ -20,11 +21,6 @@ public:
 	std::map<std::string, unsigned int> boneName2Index;
 	glm::mat4 globalTransform;
 	int boneCount = 0;
-
-	float startTime = -1.0f;
-	float durationInTicks;
-	float ticksPerSecond;
-	float ticksElapsed;
 	bool animationActive = false;
 
 
@@ -34,7 +30,7 @@ public:
 	void setRootInfo(aiNode* rootNode, const map<string, mat4>&nodeName2LocalTransform);
 	void setAnimation(aiAnimation* animation);
 	void draw(Shader& shader);
-	void changePose(Shader& shader, DrawType drawType);
+	void changePose(Shader& shader, DrawType drawType, float ticksElapsed);
 	void keepPose(Shader& shader, DrawType drawType);
 	void reCalculateTransform(float elapsed);
 	bool hasBones();
