@@ -4,6 +4,7 @@ layout (location = 1) in vec3 normal;
 layout (location = 2) in vec2 texCoords;
 layout (location = 3) in uvec4 boneIds;
 layout (location = 4) in vec4 boneWeights;
+layout (location = 5) in float nodeId;
 
 out vec2 tex_cord;
 out vec3 v_normal;
@@ -14,24 +15,36 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+uniform bool hasSkeleton;
+uniform mat4 node_transforms[100];
+
 void main()
 {
-	vec4 newPosition = vec4(0.0f);
-	vec4 newNormal = vec4(0.0f);
-
-	for(int i = 0; i < 4; i++)
+	if (hasSkeleton)
 	{
-		if(boneWeights[i] > 0.0f)
+		vec4 newPosition = vec4(0.0f);
+		vec4 newNormal = vec4(0.0f);
+
+		for(int i = 0; i < 4; i++)
 		{
-			mat4 boneM = bone_transforms[boneIds[i]];
-			newPosition += boneWeights[i] * boneM * vec4(position, 1.0f);
-			newNormal += boneWeights[i] * boneM * vec4(normal, 1.0f);
+			if(boneWeights[i] > 0.0f)
+			{
+				mat4 boneM = bone_transforms[boneIds[i]];
+				newPosition += boneWeights[i] * boneM * vec4(position, 1.0f);
+				newNormal += boneWeights[i] * boneM * vec4(normal, 1.0f);
+			}
 		}
+		
+		
+		gl_Position = projection * view * model * newPosition;
+		v_normal = newNormal.xyz;
 	}
-	
-	
-	gl_Position = projection * view * model * newPosition;
+	else{
+		vec4 newPosition =   node_transforms[int(nodeId)] * vec4(position, 1.0f);
+		vec4 newNormal =  node_transforms[int(nodeId)] * vec4(normal, 1.0f);
+		gl_Position = projection * view * model * newPosition;
+		v_normal = newNormal.xyz;
+	}
 	v_pos = vec3(model * vec4(position, 1.0));
 	tex_cord = texCoords;
-	v_normal = newNormal.xyz;
 }

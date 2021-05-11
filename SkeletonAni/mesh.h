@@ -21,7 +21,7 @@ struct Vertex {
 	vec2 texCoords;
 	uvec4 boneIds = glm::uvec4(0);
 	vec4 boneWeights = glm::vec4(-3.0f);
-	uint nodeId;
+	float nodeId;
 };
 
 class Mesh
