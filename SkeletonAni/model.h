@@ -7,6 +7,7 @@
 #include "material.h"
 #include "skeleton.h"
 #include "constants.h"
+#include "node.h"
 
 #include <iostream>
 #include <vector>
@@ -22,12 +23,6 @@
 
 using namespace std;
 using namespace glm;
-
-struct NodeInfo {
-	string name;
-	mat4 localTransform;
-	Animation* ani;
-};
 
 
 class Model
@@ -50,10 +45,10 @@ public:
 	uint getBonesCount();
 	uint getVertexCount();
 private:
-	void processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentTransform);
+	NodeInfo* processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentTransform);
 	void setAnimation(aiAnimation* animation);
 	void showNodeName(aiNode* node);
-	void setNodeAnimation(string nodeName, Animation *ani);
+	void calculateNodeTransform(NodeInfo* node, glm::mat4 parentTransform, float delta);
 	void applyNodeTransform(Shader& shader);
 	
 	string directory;
@@ -68,6 +63,7 @@ private:
 	float ticksElapsed;
 
 	std::vector<glm::mat4> nodeTransforms;
-	map<uint, NodeInfo*> nodeIndex2Info;
+	map<string, NodeInfo*> nodeName2Info;
+	NodeInfo* rootNode;
 	uint nodeCount = 0;
 };

@@ -35,7 +35,6 @@ mat4 Bone::getTransform(float delta)
 	{
 		return localTransform;
 	}
-	return mat4();
 }
 
 void Bone::setAnimation(Animation* ani, bool align)

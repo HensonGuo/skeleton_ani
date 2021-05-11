@@ -20,7 +20,13 @@ void Model::clear()
 	}
 	this->meshes.clear();
 	nodeTransforms.clear();
-	nodeIndex2Info.clear();
+	for (auto it = nodeName2Info.begin(); it != nodeName2Info.end(); it++)
+	{
+		delete it->second;
+		it->second = NULL;
+	}
+	nodeName2Info.clear();
+	rootNode = NULL;
 }
 
 void Model::loadModel(const string& path)
@@ -47,10 +53,10 @@ void Model::loadModel(const string& path)
 		cout << "Animation TicksPerSecond: " << scene->mAnimations[0]->mTicksPerSecond << endl << endl;
 	}
 
-	aiNode* rootNode = scene->mRootNode;
-	showNodeName(rootNode);
-	processNode(rootNode, scene, aiMatrix4x4());
-	skeleton->setRootInfo(rootNode);
+	aiNode* aiRootNode = scene->mRootNode;
+	showNodeName(aiRootNode);
+	rootNode = processNode(aiRootNode, scene, aiMatrix4x4());
+	skeleton->setRootInfo(aiRootNode);
 	if (scene->HasAnimations() == true)
 		setAnimation(scene->mAnimations[0]);
 }
@@ -87,6 +93,8 @@ void Model::draw(Shader& shader, DrawType drawType)
 	else
 	{
 		shader.setBool("hasSkeleton", false);
+		nodeTransforms.resize(nodeCount);
+		this->calculateNodeTransform(rootNode, mat4(), ticksElapsed);
 		this->applyNodeTransform(shader);
 	}
 	
@@ -141,7 +149,7 @@ uint Model::getVertexCount()
 	return this->vertexCount;
 }
 
-void Model::processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentTransform)
+NodeInfo* Model::processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentTransform)
 {
 	vertexCount = 0;
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -160,17 +168,22 @@ void Model::processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentT
 		meshes.push_back(mesh);
 		vertexCount += mesh->getVertextCount();
 	}
+
 	currentTransform = currentTransform * node->mTransformation;
 	NodeInfo *nodeInfo = new NodeInfo();
+	nodeInfo->id = nodeCount;
 	nodeInfo->name = node->mName.C_Str();
 	nodeInfo->localTransform = assimpToGlmMatrix(currentTransform);
-	nodeIndex2Info.insert(pair<int, NodeInfo*>(nodeCount, nodeInfo));
-
+	nodeName2Info.insert(pair<string, NodeInfo*>(nodeInfo->name, nodeInfo));
 	nodeCount += 1;
+
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
-		processNode(node->mChildren[i], scene, currentTransform);
+		NodeInfo *subNode = processNode(node->mChildren[i], scene, currentTransform);
+		subNode->parent = nodeInfo;
+		nodeInfo->children.push_back(subNode);
 	}
+	return nodeInfo;
 }
 
 void Model::setAnimation(aiAnimation* animation)
@@ -185,7 +198,8 @@ void Model::setAnimation(aiAnimation* animation)
 		{
 			aiNodeAnim* aniNode = animation->mChannels[i];
 			Animation* ani = new Animation(aniNode);
-			setNodeAnimation(aniNode->mNodeName.C_Str(), ani);
+			NodeInfo* nodeInfo = nodeName2Info.at(aniNode->mNodeName.C_Str());
+			nodeInfo->ani = ani;
 		}
 	}
 }
@@ -198,35 +212,17 @@ void Model::showNodeName(aiNode* node)
 	}
 }
 
-void Model::setNodeAnimation(string nodeName, Animation* ani)
+void Model::calculateNodeTransform(NodeInfo* node, glm::mat4 parentTransform, float delta)
 {
-	for (auto it = nodeIndex2Info.begin(); it != nodeIndex2Info.end(); it++)
-	{
-		if (strcmp(it->second->name.c_str(), nodeName.c_str()) == 0)
-		{
-			it->second->ani = ani;
-		}
-	}
+	glm::mat4 nodeTransform = node->getTransform(delta);
+	glm::mat4 finalTransformation = parentTransform * nodeTransform;
+	nodeTransforms[node->id] = finalTransformation;
+
+	for (int i = 0; i < node->children.size(); i++)
+		calculateNodeTransform(node->children[i], finalTransformation, delta);
 }
 
 void Model::applyNodeTransform(Shader& shader)
 {
-	nodeTransforms.resize(nodeCount);
-	for (uint i = 0; i < nodeCount; i++)
-	{
-		uint index = i;
-		NodeInfo* nodeInfo = nodeIndex2Info.at(index);
-		mat4 trans;
-		if (nodeInfo->ani)
-		{
-			nodeInfo->ani->update(ticksElapsed);
-			trans = nodeInfo->ani->getCurrentTransform();
-		}
-		else
-		{
-			trans = nodeInfo->localTransform;
-		}
-		nodeTransforms[i] = trans;
-	}
 	shader.setMat4("node_transforms", nodeTransforms.size(), nodeTransforms[0]);
 }
