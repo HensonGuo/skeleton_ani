@@ -27,7 +27,7 @@ public:
 	Skeleton();
 	~Skeleton();
 	void readBones(aiMesh* mesh);
-	void setRootInfo(aiNode* rootNode, const map<string, mat4>&nodeName2LocalTransform);
+	void setRootInfo(aiNode* rootNode);
 	void setAnimation(aiAnimation* animation);
 	void draw(Shader& shader);
 	void changePose(Shader& shader, DrawType drawType, float ticksElapsed);
@@ -35,7 +35,6 @@ public:
 	void reCalculateTransform(float elapsed);
 	bool hasBones();
 private:
-	map<string, mat4> nodeName2LocalTransform;
 	void applyPose(Shader& shader, DrawType drawType);
 	Bone* createBoneHierarchy(aiNode* node);
 	void calculateBoneTransform(Bone* bone, glm::mat4 parentTransform, float delta);

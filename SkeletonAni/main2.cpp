@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
 	Shader skeletonShader("./../resources/shaders/lineV.txt", "./../resources/shaders/lineF.txt");
 	Shader modelShader("./../resources/shaders/vertext.txt", "./../resources/shaders/fragment.txt");
 
-	model.loadModel("./../resources/car1_1.glb");
+	model.loadModel("./../resources/car.glb");
 	model.playAnimation(false);
 
 	while (!glfwWindowShouldClose(window)) {
@@ -197,21 +197,6 @@ void updateGui()
 	ImGui::Begin("Demo");
 	ImGui::SetWindowSize(ImVec2(260, 424));
 	/*ImGui::SetWindowPos(ImVec2(10, 10));*/
-	ImGui::Text(u8"切换模型");
-	if (ImGui::RadioButton("model1", &checkModel, 0))
-	{
-		model.clear();
-		model.loadModel("./../resources/model1.dae");
-		model.playAnimation(false);
-		checkMotion = -1;
-	}
-	else if (ImGui::RadioButton("model2", &checkModel, 1))
-	{
-		model.clear();
-		model.loadModel("./../resources/model2.dae");
-		model.playAnimation(false);
-		checkMotion = -1;
-	}
 
 	ImGui::NewLine();
 	ImGui::Text(u8"顶点数:%d", model.getVertexCount());ImGui::SameLine();
@@ -231,29 +216,7 @@ void updateGui()
 
 	ImGui::NewLine();
 	ImGui::Text(u8"动画");
-	if (ImGui::RadioButton(u8"跳舞", &checkMotion, 0))
-	{
-		model.loadAnimation("./../resources/Dancing.dae");
-		model.playAnimation(true);
-	}
-	ImGui::SameLine();
-	if (ImGui::RadioButton(u8"攻击", &checkMotion, 1))
-	{
-		model.loadAnimation("./../resources/Boxing.dae");
-		model.playAnimation(true);
-	}
-	if (ImGui::RadioButton(u8"行走", &checkMotion, 2))
-	{
-		model.loadAnimation("./../resources/Walk.dae");
-		model.playAnimation(true);
-	}
-	ImGui::SameLine();
-	if (ImGui::RadioButton(u8"踢腿", &checkMotion, 3))
-	{
-		model.loadAnimation("./../resources/Kick.dae");
-		model.playAnimation(true);
-	}
-
+	
 	ImGui::NewLine();
 	if (ImGui::SliderFloat("", &animationElapsed, 0, animationDuration))
 	{

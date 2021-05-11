@@ -19,6 +19,8 @@ void Model::clear()
 		*it = NULL;
 	}
 	this->meshes.clear();
+	nodeTransforms.clear();
+	nodeIndex2Info.clear();
 }
 
 void Model::loadModel(const string& path)
@@ -48,7 +50,7 @@ void Model::loadModel(const string& path)
 	aiNode* rootNode = scene->mRootNode;
 	showNodeName(rootNode);
 	processNode(rootNode, scene, aiMatrix4x4());
-	skeleton->setRootInfo(rootNode, nodeName2LocalTransform);
+	skeleton->setRootInfo(rootNode);
 	if (scene->HasAnimations() == true)
 		setAnimation(scene->mAnimations[0]);
 }
@@ -64,19 +66,19 @@ void Model::loadAnimation(const string& path)
 
 void Model::draw(Shader& shader, DrawType drawType)
 {
+	if (this->startTime < 0.0f)
+	{
+		std::cout << "start time set!!!\n";
+		startTime = (float)glfwGetTime();
+	}
+	float timeElapsed = (float)glfwGetTime() - startTime;
+	ticksElapsed = fmod((timeElapsed * ticksPerSecond), durationInTicks);
+
 	if (skeleton->hasBones())
 	{
 		shader.setBool("hasSkeleton", true);
 		if (skeleton->animationActive)
 		{
-			if (this->startTime < 0.0f)
-			{
-				std::cout << "start time set!!!\n";
-				startTime = (float)glfwGetTime();
-			}
-			float timeElapsed = (float)glfwGetTime() - startTime;
-			ticksElapsed = fmod((timeElapsed * ticksPerSecond), durationInTicks);
-
 			skeleton->changePose(shader, drawType, ticksElapsed);
 		}
 		else
@@ -159,8 +161,11 @@ void Model::processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentT
 		vertexCount += mesh->getVertextCount();
 	}
 	currentTransform = currentTransform * node->mTransformation;
-	nodeName2LocalTransform.insert(pair<string, mat4>(node->mName.C_Str(), assimpToGlmMatrix(currentTransform)));
-	nodeIndex2Name.insert(pair<int, string>(nodeCount, node->mName.C_Str()));
+	NodeInfo *nodeInfo = new NodeInfo();
+	nodeInfo->name = node->mName.C_Str();
+	nodeInfo->localTransform = assimpToGlmMatrix(currentTransform);
+	nodeIndex2Info.insert(pair<int, NodeInfo*>(nodeCount, nodeInfo));
+
 	nodeCount += 1;
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
@@ -172,7 +177,17 @@ void Model::setAnimation(aiAnimation* animation)
 {
 	ticksPerSecond = (float)animation->mTicksPerSecond;
 	durationInTicks = (float)animation->mDuration;
-	skeleton->setAnimation(animation);
+	if (skeleton->hasBones())
+		skeleton->setAnimation(animation);
+	else
+	{
+		for (uint i = 0; i < animation->mNumChannels; i++)
+		{
+			aiNodeAnim* aniNode = animation->mChannels[i];
+			Animation* ani = new Animation(aniNode);
+			setNodeAnimation(aniNode->mNodeName.C_Str(), ani);
+		}
+	}
 }
 
 void Model::showNodeName(aiNode* node)
@@ -183,14 +198,34 @@ void Model::showNodeName(aiNode* node)
 	}
 }
 
+void Model::setNodeAnimation(string nodeName, Animation* ani)
+{
+	for (auto it = nodeIndex2Info.begin(); it != nodeIndex2Info.end(); it++)
+	{
+		if (strcmp(it->second->name.c_str(), nodeName.c_str()) == 0)
+		{
+			it->second->ani = ani;
+		}
+	}
+}
+
 void Model::applyNodeTransform(Shader& shader)
 {
 	nodeTransforms.resize(nodeCount);
 	for (uint i = 0; i < nodeCount; i++)
 	{
 		uint index = i;
-		string nodeName = nodeIndex2Name.at(index);
-		mat4 trans = nodeName2LocalTransform.at(nodeName);
+		NodeInfo* nodeInfo = nodeIndex2Info.at(index);
+		mat4 trans;
+		if (nodeInfo->ani)
+		{
+			nodeInfo->ani->update(ticksElapsed);
+			trans = nodeInfo->ani->getCurrentTransform();
+		}
+		else
+		{
+			trans = nodeInfo->localTransform;
+		}
 		nodeTransforms[i] = trans;
 	}
 	shader.setMat4("node_transforms", nodeTransforms.size(), nodeTransforms[0]);

@@ -23,6 +23,12 @@
 using namespace std;
 using namespace glm;
 
+struct NodeInfo {
+	string name;
+	mat4 localTransform;
+	Animation* ani;
+};
+
 
 class Model
 {
@@ -45,9 +51,9 @@ public:
 	uint getVertexCount();
 private:
 	void processNode(aiNode* node, const aiScene* scene, aiMatrix4x4 currentTransform);
-	void processAnimation(const aiScene* scene);
 	void setAnimation(aiAnimation* animation);
 	void showNodeName(aiNode* node);
+	void setNodeAnimation(string nodeName, Animation *ani);
 	void applyNodeTransform(Shader& shader);
 	
 	string directory;
@@ -62,7 +68,6 @@ private:
 	float ticksElapsed;
 
 	std::vector<glm::mat4> nodeTransforms;
-	map<string, mat4> nodeName2LocalTransform;
-	map<uint, string> nodeIndex2Name;
+	map<uint, NodeInfo*> nodeIndex2Info;
 	uint nodeCount = 0;
 };
