@@ -131,13 +131,13 @@
     <ClCompile Include="imgui\imgui_tables.cpp">
       <Filter>源文件\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="main2.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="animation.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="node.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
